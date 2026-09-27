@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../l10n/app_localizations.dart';
+import '../providers/app_locale.dart';
 import '../theme/app_theme.dart';
-import '../widgets/stat_chip.dart';
 import '../widgets/disease_alert_card.dart';
-import '../widgets/recent_scan_tile.dart';
-import '../widgets/weather_card.dart';
 import '../widgets/disease_risk_card.dart';
-import 'scan_screen.dart';
+import '../widgets/recent_scan_tile.dart';
+import '../widgets/stat_chip.dart';
+import '../widgets/weather_card.dart';
 import 'history_screen.dart';
+import 'scan_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: IndexedStack(
@@ -62,14 +68,14 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _NavBtn(
                   icon: Icons.grid_view_rounded,
-                  label: 'Dashboard',
+                  label: l10n.dashboard,
                   active: _selectedIndex == 0,
                   onTap: () => setState(() => _selectedIndex = 0),
                 ),
                 const SizedBox(width: 64),
                 _NavBtn(
                   icon: Icons.history_rounded,
-                  label: 'History',
+                  label: l10n.history,
                   active: _selectedIndex == 1,
                   onTap: () => setState(() => _selectedIndex = 1),
                 ),
@@ -88,11 +94,12 @@ class _NavBtn extends StatelessWidget {
   final bool active;
   final VoidCallback onTap;
 
-  const _NavBtn(
-      {required this.icon,
-      required this.label,
-      required this.active,
-      required this.onTap});
+  const _NavBtn({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -104,9 +111,11 @@ class _NavBtn extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                size: 22,
-                color: active ? AppColors.primary : AppColors.textTertiary),
+            Icon(
+              icon,
+              size: 22,
+              color: active ? AppColors.primary : AppColors.textTertiary,
+            ),
             const SizedBox(height: 3),
             Text(
               label,
@@ -129,9 +138,10 @@ class _Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return CustomScrollView(
       slivers: [
-        // App Bar
         SliverAppBar(
           pinned: true,
           backgroundColor: AppColors.background,
@@ -145,10 +155,14 @@ class _Dashboard extends StatelessWidget {
                   color: AppColors.primaryMuted,
                   borderRadius: BorderRadius.circular(9),
                   border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3)),
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                  ),
                 ),
-                child: const Icon(Icons.grain_rounded,
-                    size: 18, color: AppColors.primary),
+                child: const Icon(
+                  Icons.grain_rounded,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 10),
               const Text(
@@ -163,16 +177,16 @@ class _Dashboard extends StatelessWidget {
             ],
           ),
           actions: [
-            // Status pill
+            const _LanguageToggle(),
             Container(
               margin: const EdgeInsets.only(right: 8),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: AppColors.successMuted,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.2)),
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: const Row(
                 children: [
@@ -190,8 +204,11 @@ class _Dashboard extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.notifications_outlined,
-                  color: AppColors.textSecondary, size: 22),
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: AppColors.textSecondary,
+                size: 22,
+              ),
               onPressed: () {},
             ),
           ],
@@ -200,57 +217,52 @@ class _Dashboard extends StatelessWidget {
             child: Container(height: 1, color: AppColors.border),
           ),
         ),
-
         SliverPadding(
           padding: const EdgeInsets.all(16),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Greeting
-              const Text(
-                'Good morning 👋',
-                style: TextStyle(
+              Text(
+                l10n.goodMorning,
+                style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
-                'Vineyard health overview',
-                style: TextStyle(
+              Text(
+                l10n.vineyardHealth,
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                   letterSpacing: -0.5,
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // ── Stat chips row ──
-              const Row(
+              Row(
                 children: [
                   Expanded(
                     child: StatChip(
-                      label: 'Scans',
+                      label: l10n.scans,
                       value: '14',
                       icon: Icons.qr_code_scanner_rounded,
                       accent: AppColors.primary,
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: StatChip(
-                      label: 'Diseases',
+                      label: l10n.diseases,
                       value: '3',
                       icon: Icons.warning_rounded,
                       accent: AppColors.warning,
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: StatChip(
-                      label: 'Healthy',
+                      label: l10n.healthy,
                       value: '11',
                       icon: Icons.check_circle_rounded,
                       accent: AppColors.primary,
@@ -258,36 +270,25 @@ class _Dashboard extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
-              // ── Weather + Humidity row ──
               const Row(
                 children: [
                   Expanded(child: WeatherCard()),
                 ],
               ),
-
               const SizedBox(height: 16),
-
-              // ── Disease Risk Card ──
               const DiseaseRiskCard(),
-
               const SizedBox(height: 16),
-
-              // ── Active Alert ──
               const DiseaseAlertCard(),
-
               const SizedBox(height: 20),
-
-              // ── Scan CTA ──
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppColors.primaryMuted,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.2)),
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -297,7 +298,9 @@ class _Dashboard extends StatelessWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(6),
@@ -313,9 +316,9 @@ class _Dashboard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          const Text(
-                            'Scan a leaf now',
-                            style: TextStyle(
+                          Text(
+                            l10n.scanNow,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                               color: AppColors.textPrimary,
@@ -323,9 +326,9 @@ class _Dashboard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Tap the camera button below',
-                            style: TextStyle(
+                          Text(
+                            l10n.tapCamera,
+                            style: const TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -340,22 +343,22 @@ class _Dashboard extends StatelessWidget {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.camera_alt_rounded,
-                          color: Colors.black, size: 24),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.black,
+                        size: 24,
+                      ),
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // ── Recent Scans ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Recent Scans',
-                    style: TextStyle(
+                  Text(
+                    l10n.recentScans,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
@@ -363,8 +366,8 @@ class _Dashboard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'View all →',
-                    style: TextStyle(
+                    l10n.viewAll,
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
@@ -397,12 +400,47 @@ class _Dashboard extends StatelessWidget {
                 confidence: 91,
                 accent: AppColors.danger,
               ),
-
               const SizedBox(height: 100),
             ]),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LanguageToggle extends StatelessWidget {
+  const _LanguageToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final localeController = context.read<AppLocaleController>();
+    final currentLocale = Localizations.localeOf(context);
+
+    return GestureDetector(
+      onTap: () {
+        final newLocale = currentLocale.languageCode == 'en'
+            ? const Locale('mr')
+            : const Locale('en');
+        localeController.setLocale(newLocale);
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Text(
+          currentLocale.languageCode == 'en' ? 'मराठी' : 'EN',
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primary,
+          ),
+        ),
+      ),
     );
   }
 }
