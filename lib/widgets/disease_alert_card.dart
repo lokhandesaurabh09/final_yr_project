@@ -9,26 +9,21 @@ class DiseaseAlertCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.diseaseRed.withOpacity(0.08),
+        color: AppColors.dangerMuted,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.diseaseRed.withOpacity(0.25),
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: AppColors.diseaseRed.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.danger.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(11),
             ),
-            child: const Icon(
-              Icons.warning_amber_rounded,
-              color: AppColors.diseaseRed,
-              size: 22,
-            ),
+            child: const Icon(Icons.warning_rounded,
+                color: AppColors.danger, size: 20),
           ),
           const SizedBox(width: 14),
           const Expanded(
@@ -36,29 +31,29 @@ class DiseaseAlertCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Black Rot Alert',
+                  'Black Rot spreading',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.diseaseRed,
+                    color: AppColors.danger,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Detected in 2 recent scans. Check neighboring plants.',
+                  'Detected in 2 recent scans — check neighbouring plants immediately.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textLight,
+                    color: AppColors.textSecondary,
                     height: 1.4,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.textLight,
-          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.chevron_right_rounded,
+              color: AppColors.textTertiary, size: 20),
         ],
       ),
     );

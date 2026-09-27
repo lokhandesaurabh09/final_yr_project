@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'home_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
@@ -7,237 +8,235 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.baseBackground,
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 240,
             pinned: true,
-            backgroundColor: AppColors.primaryGreen,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
+            backgroundColor: AppColors.background,
+            leading: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                margin: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Icon(Icons.arrow_back_rounded,
+                    color: AppColors.textPrimary, size: 18),
+              ),
             ),
             title: const Text('Scan Result'),
             flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Leaf image placeholder
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF1B4332), Color(0xFF2D6A4F)],
+              background: Container(
+                color: AppColors.surface,
+                child: Stack(
+                  children: [
+                    // Leaf image placeholder
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppColors.warningMuted,
+                              AppColors.background,
+                            ],
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.eco_rounded,
+                          size: 80,
+                          color: AppColors.warning.withValues(alpha: 0.15),
+                        ),
                       ),
                     ),
-                    child: Icon(
-                      Icons.spa_rounded,
-                      size: 100,
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                  ),
-                  // Disease highlight overlay chip
-                  Positioned(
-                    bottom: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.warningAmber,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
+                    // Bottom badges
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      child: Row(
                         children: [
-                          Icon(Icons.warning_rounded,
-                              color: Colors.white, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Disease Detected',
+                          _Badge(
+                              label: 'Disease Detected',
+                              color: AppColors.warning),
+                          const SizedBox(width: 8),
+                          _Badge(
+                              label: '94% confidence',
+                              color: AppColors.primary),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Disease name
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Powdery Mildew',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.8,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Erysiphe necator',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Disease name & confidence
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Powdery Mildew',
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textDark,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Erysiphe necator',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontStyle: FontStyle.italic,
-                                color: AppColors.textLight,
-                              ),
-                            ),
-                          ],
-                        ),
+                    // Severity badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.warningMuted,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: AppColors.warning.withValues(alpha: 0.2)),
                       ),
-                      // Confidence badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.mintBackground,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Column(
-                          children: [
-                            Text(
-                              '94%',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.accentGreen,
-                              ),
-                            ),
-                            Text(
-                              'confidence',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Severity bar
-                  const _SeverityIndicator(severity: 0.55, label: 'Moderate'),
-
-                  const SizedBox(height: 24),
-
-                  // About section
-                  _SectionCard(
-                    title: 'About This Disease',
-                    icon: Icons.info_rounded,
-                    child: const Text(
-                      'Powdery Mildew is a fungal disease affecting grapevines, causing white powdery patches on leaves and shoots. It thrives in warm, dry conditions with high humidity and can significantly reduce grape quality if left untreated.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textLight,
-                        height: 1.6,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Symptoms
-                  _SectionCard(
-                    title: 'Visible Symptoms',
-                    icon: Icons.search_rounded,
-                    child: Column(
-                      children: [
-                        _BulletPoint('White powdery coating on leaf surface'),
-                        _BulletPoint('Yellowing and curling of leaves'),
-                        _BulletPoint('Stunted shoot growth'),
-                        _BulletPoint('Infected berries may crack or split'),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Treatment
-                  _SectionCard(
-                    title: 'Recommended Treatment',
-                    icon: Icons.healing_rounded,
-                    iconColor: AppColors.accentGreen,
-                    child: Column(
-                      children: [
-                        _TreatmentStep(
-                          step: '1',
-                          text: 'Apply sulfur-based fungicide every 7–10 days',
-                        ),
-                        _TreatmentStep(
-                          step: '2',
-                          text: 'Improve air circulation by pruning dense foliage',
-                        ),
-                        _TreatmentStep(
-                          step: '3',
-                          text: 'Avoid overhead irrigation to reduce humidity',
-                        ),
-                        _TreatmentStep(
-                          step: '4',
-                          text: 'Monitor neighboring plants for spread',
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Action buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.save_alt_rounded),
-                          label: const Text('Save Result'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: const BorderSide(
-                                color: AppColors.accentGreen, width: 1.5),
-                            foregroundColor: AppColors.accentGreen,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      child: const Column(
+                        children: [
+                          Text(
+                            'MODERATE',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.warning,
+                              letterSpacing: 0.8,
                             ),
                           ),
-                        ),
+                          Text(
+                            'severity',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.camera_alt_rounded),
-                          label: const Text('Scan Again'),
-                        ),
-                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Severity bar
+                _SeverityBar(value: 0.55),
+
+                const SizedBox(height: 20),
+
+                // About
+                _InfoCard(
+                  title: 'About',
+                  icon: Icons.info_outline_rounded,
+                  child: const Text(
+                    'Powdery Mildew is a fungal disease caused by Erysiphe necator. It creates white powdery patches on leaves and shoots, thriving in warm dry conditions with high humidity. It can significantly reduce grape quality if untreated.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      height: 1.65,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Symptoms
+                _InfoCard(
+                  title: 'Symptoms',
+                  icon: Icons.search_rounded,
+                  child: Column(
+                    children: [
+                      _Bullet('White powdery coating on leaf surface'),
+                      _Bullet('Yellowing and curling of leaves'),
+                      _Bullet('Stunted shoot growth'),
+                      _Bullet('Infected berries may crack or split'),
                     ],
                   ),
+                ),
 
-                  const SizedBox(height: 32),
-                ],
-              ),
+                const SizedBox(height: 12),
+
+                // Treatment
+                _InfoCard(
+                  title: 'Treatment',
+                  icon: Icons.healing_rounded,
+                  accentColor: AppColors.primary,
+                  child: Column(
+                    children: [
+                      _Step('1', 'Apply sulfur-based fungicide every 7–10 days'),
+                      _Step('2', 'Improve airflow by pruning dense foliage'),
+                      _Step('3', 'Avoid overhead irrigation to reduce humidity'),
+                      _Step('4', 'Monitor neighbouring plants for spread'),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.save_alt_rounded, size: 16),
+                        label: const Text('Save'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(
+                              color: AppColors.border, width: 1),
+                          foregroundColor: AppColors.textSecondary,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.of(context)
+                            .pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (_) => const HomeScreen()),
+                          (route) => false,
+                        ),
+                        icon: const Icon(Icons.home_rounded,
+                            size: 16, color: Colors.black),
+                        label: const Text('Back to Dashboard'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+              ]),
             ),
           ),
         ],
@@ -246,60 +245,60 @@ class ResultScreen extends StatelessWidget {
   }
 }
 
-class _SeverityIndicator extends StatelessWidget {
-  final double severity; // 0.0 to 1.0
+class _Badge extends StatelessWidget {
   final String label;
+  final Color color;
+  const _Badge({required this.label, required this.color});
 
-  const _SeverityIndicator({required this.severity, required this.label});
-
-  Color get _color {
-    if (severity < 0.35) return AppColors.healthyGreen;
-    if (severity < 0.65) return AppColors.warningAmber;
-    return AppColors.diseaseRed;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+    );
   }
+}
+
+class _SeverityBar extends StatelessWidget {
+  final double value;
+  const _SeverityBar({required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Disease Severity',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: _color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                label,
+            Text('Severity',
                 style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: _color,
-                ),
-              ),
-            ),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary)),
+            Text('55%',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.warning)),
           ],
         ),
         const SizedBox(height: 8),
         ClipRRect(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: severity,
-            backgroundColor: const Color(0xFFE8F5E9),
-            valueColor: AlwaysStoppedAnimation<Color>(_color),
-            minHeight: 10,
+            value: value,
+            minHeight: 6,
+            backgroundColor: AppColors.border,
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(AppColors.warning),
           ),
         ),
       ],
@@ -307,82 +306,79 @@ class _SeverityIndicator extends StatelessWidget {
   }
 }
 
-class _SectionCard extends StatelessWidget {
+class _InfoCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget child;
-  final Color? iconColor;
-
-  const _SectionCard({
-    required this.title,
-    required this.icon,
-    required this.child,
-    this.iconColor,
-  });
+  final Color? accentColor;
+  const _InfoCard(
+      {required this.title,
+      required this.icon,
+      required this.child,
+      this.accentColor});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon,
-                    size: 18,
-                    color: iconColor ?? AppColors.primaryGreen),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon,
+                  size: 15,
+                  color: accentColor ?? AppColors.textSecondary),
+              const SizedBox(width: 7),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.2,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            child,
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
       ),
     );
   }
 }
 
-class _BulletPoint extends StatelessWidget {
+class _Bullet extends StatelessWidget {
   final String text;
-  const _BulletPoint(this.text);
+  const _Bullet(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: const EdgeInsets.only(top: 6),
-            width: 6,
-            height: 6,
+            margin: const EdgeInsets.only(top: 5),
+            width: 5,
+            height: 5,
             decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.accentGreen,
-            ),
+                shape: BoxShape.circle, color: AppColors.primary),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textLight,
-                height: 1.5,
-              ),
-            ),
+            child: Text(text,
+                style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.5)),
           ),
         ],
       ),
@@ -390,10 +386,10 @@ class _BulletPoint extends StatelessWidget {
   }
 }
 
-class _TreatmentStep extends StatelessWidget {
+class _Step extends StatelessWidget {
   final String step;
   final String text;
-  const _TreatmentStep({required this.step, required this.text});
+  const _Step(this.step, this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -403,33 +399,29 @@ class _TreatmentStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: 22,
+            height: 22,
             decoration: BoxDecoration(
-              color: AppColors.mintBackground,
+              color: AppColors.primaryMuted,
               borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2)),
             ),
             child: Center(
-              child: Text(
-                step,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.accentGreen,
-                ),
-              ),
+              child: Text(step,
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary)),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textLight,
-                height: 1.5,
-              ),
-            ),
+            child: Text(text,
+                style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.5)),
           ),
         ],
       ),
