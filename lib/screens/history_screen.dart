@@ -1,238 +1,614 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+ 
 import '../theme/app_theme.dart';
-
-class HistoryScreen extends StatelessWidget {
+import '../widgets/empty_state.dart';
+import '../widgets/indicators/confidence_bar.dart';
+import '../widgets/indicators/severity_chip.dart';
+import 'scan_screen.dart';
+ 
+// TODO(l10n): move strings into the .arb files (en + mr).
+// TODO(db): replace _seed with records from the scan repository (sqflite).
+ 
+enum _Filter { all, diseased, healthy }
+ 
+class _Item {
+  final int id;
+  final String name;
+  final Severity severity;
+  final String severityLabel;
+  final String date; // "<Group>, <time>"
+  final int confidence;
+ 
+  const _Item(
+    this.id,
+    this.name,
+    this.severity,
+    this.severityLabel,
+    this.date,
+    this.confidence,
+  );
+ 
+  bool get healthy => severity == Severity.healthy;
+  String get group => date.split(',').first;
+  String get time => date.contains(',') ? date.split(',').last.trim() : '';
+}
+ 
+const List<_Item> _seed = [
+  _Item(1, 'Powdery Mildew', Severity.moderate, 'Moderate', 'Today, 9:42 AM', 94),
+  _Item(2, 'Healthy Leaf', Severity.healthy, 'No disease', 'Today, 9:15 AM', 99),
+  _Item(3, 'Black Rot', Severity.severe, 'Severe', 'Yesterday, 3:00 PM', 91),
+  _Item(4, 'Healthy Leaf', Severity.healthy, 'No disease', 'Yesterday, 11:00 AM', 97),
+  _Item(5, 'Downy Mildew', Severity.mild, 'Mild', 'Sep 21, 2:30 PM', 88),
+  _Item(6, 'Leaf Blight', Severity.moderate, 'Moderate', 'Sep 20, 10:10 AM', 85),
+];
+ 
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
-
+ 
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+ 
+class _HistoryScreenState extends State<HistoryScreen> {
+  final List<_Item> _items = List.of(_seed);
+  final TextEditingController _search = TextEditingController();
+  _Filter _filter = _Filter.all;
+ 
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+ 
+  List<_Item> get _visible {
+    final q = _search.text.trim().toLowerCase();
+    return _items.where((i) {
+      final okFilter = switch (_filter) {
+        _Filter.all => true,
+        _Filter.diseased => !i.healthy,
+        _Filter.healthy => i.healthy,
+      };
+      return okFilter && (q.isEmpty || i.name.toLowerCase().contains(q));
+    }).toList();
+  }
+ 
+  void _delete(_Item item, int masterIndex) {
+    HapticFeedback.lightImpact();
+    setState(() => _items.removeAt(masterIndex));
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${item.name} removed'),
+          action: SnackBarAction(
+            label: 'Undo',
+            textColor: AppColors.primaryGlow,
+            onPressed: () => setState(() {
+              _items.insert(masterIndex.clamp(0, _items.length), item);
+            }),
+          ),
+        ),
+      );
+  }
+ 
+  void _openScan() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ScanScreen()),
+    );
+  }
+ 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      _Item('Powdery Mildew', 'Moderate', 'Today, 9:42 AM', false,
-          AppColors.warning, 94),
-      _Item('Healthy Leaf', 'No disease', 'Today, 9:15 AM', true,
-          AppColors.primary, 99),
-      _Item('Black Rot', 'Severe', 'Yesterday, 3:00 PM', false,
-          AppColors.danger, 91),
-      _Item('Healthy Leaf', 'No disease', 'Yesterday, 11:00 AM', true,
-          AppColors.primary, 97),
-      _Item('Downy Mildew', 'Mild', 'Sep 21, 2:30 PM', false,
-          AppColors.warning, 88),
-      _Item('Leaf Blight', 'Moderate', 'Sep 20, 10:10 AM', false,
-          AppColors.warning, 85),
-    ];
-
-    final diseased = items.where((i) => !i.healthy).length;
-    final healthy = items.where((i) => i.healthy).length;
-
+    final visible = _visible;
+    final total = _items.length;
+    final healthy = _items.where((i) => i.healthy).length;
+    final diseased = total - healthy;
+ 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
         title: const Text('Scan History'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune_rounded,
-                color: AppColors.textSecondary, size: 20),
-            onPressed: () {},
-          ),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
         ),
       ),
-      body: Column(
-        children: [
-          // Summary row
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            color: AppColors.surface,
-            child: Row(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Column(
               children: [
-                _SummaryChip(
-                    value: '${items.length}',
-                    label: 'Total',
-                    color: AppColors.textSecondary),
-                const SizedBox(width: 10),
-                _SummaryChip(
-                    value: '$diseased',
-                    label: 'Diseased',
-                    color: AppColors.danger),
-                const SizedBox(width: 10),
-                _SummaryChip(
-                    value: '$healthy',
-                    label: 'Healthy',
-                    color: AppColors.primary),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.border),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.large,
+                    AppSpacing.large,
+                    AppSpacing.large,
+                    AppSpacing.small,
                   ),
-                  child: const Text(
-                    'This week',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
+                  child: _OverviewCard(
+                    total: total,
+                    diseased: diseased,
+                    healthy: healthy,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.large,
+                    vertical: AppSpacing.small,
+                  ),
+                  child: TextField(
+                    controller: _search,
+                    onChanged: (_) => setState(() {}),
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search by disease name',
+                      hintStyle:
+                          const TextStyle(color: AppColors.textTertiary),
+                      prefixIcon: const Icon(Icons.search_rounded,
+                          color: AppColors.textSecondary),
+                      suffixIcon: _search.text.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () =>
+                                  setState(() => _search.clear()),
+                            ),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadii.card),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadii.card),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadii.card),
+                        borderSide: const BorderSide(
+                            color: AppColors.primary, width: 1.6),
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.border),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.large,
+                    AppSpacing.xSmall,
+                    AppSpacing.large,
+                    AppSpacing.small,
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: item.color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                        child: Icon(
-                          item.healthy
-                              ? Icons.eco_rounded
-                              : Icons.coronavirus_rounded,
-                          color: item.color,
-                          size: 20,
-                        ),
+                      _FilterPill(
+                        label: 'All',
+                        selected: _filter == _Filter.all,
+                        onTap: () => setState(() => _filter = _Filter.all),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        item.color.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  child: Text(
-                                    item.severity,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: item.color,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  item.date,
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      const SizedBox(width: AppSpacing.small),
+                      _FilterPill(
+                        label: 'Diseased',
+                        selected: _filter == _Filter.diseased,
+                        onTap: () =>
+                            setState(() => _filter = _Filter.diseased),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${item.confidence}%',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: item.color,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          const Text(
-                            'conf',
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: AppColors.textTertiary),
-                          ),
-                        ],
+                      const SizedBox(width: AppSpacing.small),
+                      _FilterPill(
+                        label: 'Healthy',
+                        selected: _filter == _Filter.healthy,
+                        onTap: () =>
+                            setState(() => _filter = _Filter.healthy),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right_rounded,
-                          color: AppColors.textTertiary, size: 18),
                     ],
                   ),
-                );
+                ),
+                Expanded(child: _buildList(visible)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+ 
+  Widget _buildList(List<_Item> visible) {
+    if (_items.isEmpty) {
+      return EmptyState(
+        icon: Icons.eco_rounded,
+        title: 'No detections yet',
+        message: 'Scan a grape leaf to get started and save your results here.',
+        actionLabel: 'Scan Leaf',
+        onAction: _openScan,
+      );
+    }
+    if (visible.isEmpty) {
+      return const EmptyState(
+        icon: Icons.search_off_rounded,
+        title: 'No matching scans',
+        message: 'Try a different name or switch the filter to All.',
+      );
+    }
+ 
+    final children = <Widget>[];
+    String? lastGroup;
+    for (final item in visible) {
+      if (item.group != lastGroup) {
+        lastGroup = item.group;
+        children.add(_GroupHeader(item.group));
+      }
+      final masterIndex = _items.indexOf(item);
+      children.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.small),
+          child: Dismissible(
+            key: ValueKey(item.id),
+            direction: DismissDirection.endToStart,
+            onDismissed: (_) => _delete(item, masterIndex),
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: AppSpacing.xLarge),
+              decoration: BoxDecoration(
+                color: AppColors.dangerMuted,
+                borderRadius: BorderRadius.circular(AppRadii.card),
+              ),
+              child: const Icon(Icons.delete_outline_rounded,
+                  color: AppColors.danger),
+            ),
+            child: _HistoryEntry(
+              item: item,
+              onTap: () {
+                // TODO(db): open the saved scan once records are stored.
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(const SnackBar(
+                    content: Text(
+                        'Saved scan details arrive with the database step'),
+                  ));
               },
             ),
+          ),
+        ),
+      );
+    }
+ 
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.large,
+        0,
+        AppSpacing.large,
+        AppSpacing.xLarge,
+      ),
+      children: children,
+    );
+  }
+}
+ 
+// ---------------------------------------------------------------------------
+ 
+class _OverviewCard extends StatelessWidget {
+  final int total, diseased, healthy;
+  const _OverviewCard({
+    required this.total,
+    required this.diseased,
+    required this.healthy,
+  });
+ 
+  @override
+  Widget build(BuildContext context) {
+    final ratio = total == 0 ? 0.0 : healthy / total;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.large),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.large),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Overview', style: AppTypography.sectionTitle),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.small, vertical: AppSpacing.xSmall),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryMuted,
+                  borderRadius: BorderRadius.circular(AppRadii.small),
+                ),
+                child: const Text(
+                  'SAMPLE RECORDS',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.medium),
+          Row(
+            children: [
+              _Stat('$total', 'Total', AppColors.textPrimary),
+              _Stat('$diseased', 'Diseased', AppColors.danger),
+              _Stat('$healthy', 'Healthy', AppColors.success),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.medium),
+          ConfidenceBar(value: ratio, color: AppColors.success, height: 8),
+          const SizedBox(height: 6),
+          Text(
+            '${(ratio * 100).round()}% of scans are healthy',
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary),
           ),
         ],
       ),
     );
   }
 }
-
-class _Item {
-  final String name, severity, date;
-  final bool healthy;
-  final Color color;
-  final int confidence;
-
-  _Item(this.name, this.severity, this.date, this.healthy, this.color,
-      this.confidence);
-}
-
-class _SummaryChip extends StatelessWidget {
+ 
+class _Stat extends StatelessWidget {
   final String value, label;
   final Color color;
-  const _SummaryChip(
-      {required this.value, required this.label, required this.color});
-
+  const _Stat(this.value, this.label, this.color);
+ 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: color,
-              letterSpacing: -0.5),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: const TextStyle(
-              fontSize: 12, color: AppColors.textSecondary),
-        ),
-      ],
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+                fontSize: 26, fontWeight: FontWeight.w800, color: color),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary),
+          ),
+        ],
+      ),
     );
   }
+}
+ 
+class _FilterPill extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _FilterPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: selected ? AppColors.brandGradient : null,
+            color: selected ? null : AppColors.surface,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: selected ? Colors.transparent : AppColors.border,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: selected ? Colors.white : AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+ 
+class _GroupHeader extends StatelessWidget {
+  final String text;
+  const _GroupHeader(this.text);
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: AppSpacing.medium,
+        bottom: AppSpacing.small,
+      ),
+      child: Text(
+        text.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+ 
+class _HistoryEntry extends StatelessWidget {
+  final _Item item;
+  final VoidCallback onTap;
+  const _HistoryEntry({required this.item, required this.onTap});
+ 
+  @override
+  Widget build(BuildContext context) {
+    final color = item.severity.color;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.card,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.medium),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 58,
+                    height: 58,
+                    child: CustomPaint(
+                      painter: _LeafThumbPainter(
+                        spot: item.healthy ? null : color,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.medium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: AppSpacing.small,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          SeverityChip(
+                            label: item.severityLabel,
+                            severity: item.severity,
+                          ),
+                          Text(
+                            item.time,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.small),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${item.confidence}%',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
+                    ),
+                    const Text(
+                      'confidence',
+                      style: TextStyle(
+                          fontSize: 10, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+                const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textTertiary, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+ 
+/// Placeholder leaf thumbnail until real scan images are stored.
+class _LeafThumbPainter extends CustomPainter {
+  final Color? spot;
+  const _LeafThumbPainter({this.spot});
+ 
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final rect = Offset.zero & size;
+ 
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFDDE9D4), Color(0xFFBFD5B4)],
+        ).createShader(rect),
+    );
+ 
+    final leaf = Path()
+      ..moveTo(w * 0.5, h * 0.1)
+      ..cubicTo(w * 0.88, h * 0.2, w * 0.92, h * 0.7, w * 0.5, h * 0.92)
+      ..cubicTo(w * 0.08, h * 0.7, w * 0.12, h * 0.2, w * 0.5, h * 0.1)
+      ..close();
+    canvas.drawPath(
+      leaf,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF52B788), Color(0xFF2D6A4F)],
+        ).createShader(rect),
+    );
+    canvas.drawLine(
+      Offset(w * 0.5, h * 0.88),
+      Offset(w * 0.5, h * 0.16),
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.35)
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round,
+    );
+ 
+    if (spot != null) {
+      final p = Paint()..color = spot!.withValues(alpha: 0.8);
+      canvas.drawCircle(Offset(w * 0.42, h * 0.4), w * 0.08, p);
+      canvas.drawCircle(Offset(w * 0.62, h * 0.55), w * 0.1, p);
+    }
+  }
+ 
+  @override
+  bool shouldRepaint(covariant _LeafThumbPainter old) => old.spot != spot;
 }

@@ -1,158 +1,237 @@
 import 'dart:async';
-
+ 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+ 
 import '../theme/app_theme.dart';
+import '../widgets/grape_logo.dart';
 import 'onboarding_screen.dart';
-
+ 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-
+ 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
-
+ 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnim;
-  late Animation<double> _slideAnim;
+  late final AnimationController _c;
   Timer? _navigationTimer;
-
+ 
+  Animation<double> _interval(double a, double b,
+          [Curve curve = Curves.easeOut]) =>
+      CurvedAnimation(parent: _c, curve: Interval(a, b, curve: curve));
+ 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _c = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _slideAnim = Tween<double>(begin: 20, end: 0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-    _controller.forward();
-
+      duration: const Duration(milliseconds: 1200),
+    )..forward();
+ 
     _navigationTimer = Timer(const Duration(milliseconds: 2800), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const OnboardingScreen(),
-            transitionsBuilder: (_, anim, __, child) =>
-                FadeTransition(opacity: anim, child: child),
-            transitionDuration: const Duration(milliseconds: 400),
-          ),
-        );
-      }
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const OnboardingScreen(),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 400),
+        ),
+      );
     });
   }
-
+ 
   @override
   void dispose() {
     _navigationTimer?.cancel();
-    _controller.dispose();
+    _c.dispose();
     super.dispose();
   }
-
+ 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // Subtle green glow top-left
-          Positioned(
-            top: -120,
-            left: -80,
-            child: Container(
-              width: 350,
-              height: 350,
+    final logoScale = Tween<double>(begin: 0.7, end: 1).animate(
+      _interval(0.0, 0.55, Curves.easeOutBack),
+    );
+    final logoFade = _interval(0.0, 0.4);
+    final textFade = _interval(0.35, 0.75);
+    final textSlide = Tween<Offset>(
+      begin: const Offset(0, 0.25),
+      end: Offset.zero,
+    ).animate(_interval(0.35, 0.75));
+    final loaderFade = _interval(0.65, 1.0);
+ 
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: const Color(0xFF0B1F15),
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0B1F15),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const DecoratedBox(
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.07),
-              ),
-            ),
-          ),
-          Center(
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: AnimatedBuilder(
-                animation: _slideAnim,
-                builder: (context, child) => Transform.translate(
-                  offset: Offset(0, _slideAnim.value),
-                  child: child,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Logo mark
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryMuted,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.4),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.grain_rounded,
-                        size: 36,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'VineGuard',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Grape Disease Intelligence',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.textSecondary,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 56),
-                    // Loading indicator
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primary.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ),
+                gradient: RadialGradient(
+                  center: Alignment(0, -0.35),
+                  radius: 1.25,
+                  colors: [
+                    AppColors.primaryLight,
+                    AppColors.primaryDark,
+                    Color(0xFF0B1F15),
                   ],
+                  stops: [0.0, 0.55, 1.0],
                 ),
               ),
             ),
-          ),
-          // Version tag bottom
-          const Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Text(
-              'v1.0.0',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textTertiary,
+            // Soft decorative rings
+            Positioned(
+              top: -90,
+              right: -70,
+              child: _Ring(size: 260, alpha: 0.06),
+            ),
+            Positioned(
+              bottom: -110,
+              left: -80,
+              child: _Ring(size: 300, alpha: 0.05),
+            ),
+            SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xxLarge,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FadeTransition(
+                        opacity: logoFade,
+                        child: ScaleTransition(
+                          scale: logoScale,
+                          child: Container(
+                            width: 128,
+                            height: 128,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(36),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.22),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 14),
+                                ),
+                              ],
+                            ),
+                            child: const GrapeLogo(size: 84, onDark: true),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xLarge),
+                      FadeTransition(
+                        opacity: textFade,
+                        child: SlideTransition(
+                          position: textSlide,
+                          child: Column(
+                            children: [
+                              const Text(
+                                'GrapeCare AI',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 34,
+                                  height: 1.1,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.6,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.medium),
+                              Text(
+                                'Healthy Grapes  |  Better Harvests',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      FadeTransition(
+                        opacity: loaderFade,
+                        child: const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            strokeCap: StrokeCap.round,
+                            color: AppColors.primaryGlow,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xLarge),
+                  child: FadeTransition(
+                    opacity: loaderFade,
+                    child: Text(
+                      'EXPLAINABLE AI  ·  GRAPE LEAF DISEASE DETECTION',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.1,
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+ 
+class _Ring extends StatelessWidget {
+  final double size;
+  final double alpha;
+  const _Ring({required this.size, required this.alpha});
+ 
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: alpha),
+            width: 28,
           ),
-        ],
+        ),
       ),
     );
   }
