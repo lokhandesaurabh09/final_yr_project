@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 
 class DiseaseRiskCard extends StatelessWidget {
@@ -10,8 +11,15 @@ class DiseaseRiskCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryDark.withValues(alpha: 0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,16 +37,19 @@ class DiseaseRiskCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.warningMuted,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                      color: AppColors.warning.withValues(alpha: 0.2)),
+                    color: AppColors.warning.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: const Text(
-                  'MODERATE',
+                  'DEMO PROFILE',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -50,24 +61,25 @@ class DiseaseRiskCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.large),
 
           // Risk bars
           _RiskBar(
-              label: 'Powdery Mildew', risk: 0.72, color: AppColors.warning),
+            label: 'Powdery Mildew',
+            risk: 0.72,
+            color: AppColors.warning,
+          ),
           const SizedBox(height: 10),
           _RiskBar(label: 'Black Rot', risk: 0.45, color: AppColors.danger),
           const SizedBox(height: 10),
-          _RiskBar(
-              label: 'Downy Mildew', risk: 0.28, color: AppColors.primary),
+          _RiskBar(label: 'Downy Mildew', risk: 0.28, color: AppColors.primary),
           const SizedBox(height: 10),
-          _RiskBar(
-              label: 'Leaf Blight', risk: 0.18, color: AppColors.primary),
+          _RiskBar(label: 'Leaf Blight', risk: 0.18, color: AppColors.primary),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.medium),
 
           const Text(
-            'Based on current weather conditions and recent scan history.',
+            'Illustrative values only; not calculated from live weather or scan history.',
             style: TextStyle(
               fontSize: 11,
               color: AppColors.textSecondary,
@@ -85,8 +97,11 @@ class _RiskBar extends StatelessWidget {
   final double risk;
   final Color color;
 
-  const _RiskBar(
-      {required this.label, required this.risk, required this.color});
+  const _RiskBar({
+    required this.label,
+    required this.risk,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -115,13 +130,16 @@ class _RiskBar extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 5),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: risk,
-            minHeight: 5,
-            backgroundColor: AppColors.border,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
+        Semantics(
+          label: '$label risk ${(risk * 100).toInt()} percent',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: risk,
+              minHeight: 6,
+              backgroundColor: AppColors.border,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
           ),
         ),
       ],

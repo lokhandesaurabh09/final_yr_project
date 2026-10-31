@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 
 class WeatherCard extends StatelessWidget {
@@ -9,9 +10,16 @@ class WeatherCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.weatherBlueMuted,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.weatherBlue.withValues(alpha: 0.15)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryDark.withValues(alpha: 0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,11 +30,14 @@ class WeatherCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.wb_sunny_rounded,
-                      color: AppColors.warning, size: 16),
+                  Icon(
+                    Icons.wb_sunny_rounded,
+                    color: AppColors.warning,
+                    size: 16,
+                  ),
                   const SizedBox(width: 6),
                   const Text(
-                    'VINEYARD WEATHER',
+                    'SAMPLE WEATHER',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -40,7 +51,7 @@ class WeatherCard extends StatelessWidget {
                 'Nashik, MH',
                 style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.weatherBlue.withValues(alpha: 0.8),
+                  color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -56,11 +67,10 @@ class WeatherCard extends StatelessWidget {
               const Text(
                 '28',
                 style: TextStyle(
-                  fontSize: 52,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 42,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                   height: 1,
-                  letterSpacing: -2,
                 ),
               ),
               const Padding(
@@ -108,7 +118,7 @@ class WeatherCard extends StatelessWidget {
                 icon: Icons.water_drop_rounded,
                 label: 'Humidity',
                 value: '72%',
-                color: AppColors.weatherBlue,
+                color: AppColors.info,
               ),
               const SizedBox(width: 8),
               _WeatherMetric(
@@ -127,29 +137,30 @@ class WeatherCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.medium),
 
-          // Disease risk from weather
+          // These values are static prototype content, not live weather.
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.15)),
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(AppRadii.control),
+              border: Border.all(color: AppColors.border),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded,
-                    size: 14, color: AppColors.warning),
+                const Icon(
+                  Icons.info_outline_rounded,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'High humidity increases Powdery Mildew risk today',
+                    'Demo values only; live weather is not connected.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.warning,
+                      color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -180,10 +191,13 @@ class _WeatherMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.small,
+          vertical: AppSpacing.small,
+        ),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadii.control),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(
