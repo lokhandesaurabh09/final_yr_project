@@ -1,47 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
  
+import '../data/disease_catalog.dart';
+import '../models/scan_result.dart';
+import '../providers/scan_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/indicators/confidence_bar.dart';
 import '../widgets/indicators/severity_chip.dart';
 import 'scan_screen.dart';
  
 // TODO(l10n): move strings into the .arb files (en + mr).
-// TODO(db): replace _seed with records from the scan repository (sqflite).
  
 enum _Filter { all, diseased, healthy }
  
+/// Display row built from a stored [ScanResult].
 class _Item {
-  final int id;
+  final ScanResult result;
   final String name;
   final Severity severity;
-  final String severityLabel;
-  final String date; // "<Group>, <time>"
+  final String severityName;
+  final String group;
+  final String time;
   final int confidence;
  
-  const _Item(
-    this.id,
-    this.name,
-    this.severity,
-    this.severityLabel,
-    this.date,
-    this.confidence,
-  );
+  const _Item({
+    required this.result,
+    required this.name,
+    required this.severity,
+    required this.severityName,
+    required this.group,
+    required this.time,
+    required this.confidence,
+  });
  
   bool get healthy => severity == Severity.healthy;
-  String get group => date.split(',').first;
-  String get time => date.contains(',') ? date.split(',').last.trim() : '';
-}
+  int get id => result.id ?? -1;
  
-const List<_Item> _seed = [
-  _Item(1, 'Powdery Mildew', Severity.moderate, 'Moderate', 'Today, 9:42 AM', 94),
-  _Item(2, 'Healthy Leaf', Severity.healthy, 'No disease', 'Today, 9:15 AM', 99),
-  _Item(3, 'Black Rot', Severity.severe, 'Severe', 'Yesterday, 3:00 PM', 91),
-  _Item(4, 'Healthy Leaf', Severity.healthy, 'No disease', 'Yesterday, 11:00 AM', 97),
-  _Item(5, 'Downy Mildew', Severity.mild, 'Mild', 'Sep 21, 2:30 PM', 88),
-  _Item(6, 'Leaf Blight', Severity.moderate, 'Moderate', 'Sep 20, 10:10 AM', 85),
-];
+  factory _Item.from(ScanResult r, String lang) => _Item(
+        result: r,
+        name: DiseaseCatalog.byId(r.diseaseId).name(lang),
+        severity: toUiSeverity(r.severity),
+        severityName: severityLabel(r.severity),
+        group: dayGroupLabel(r.createdAt),
+        time: timeLabel(r.createdAt),
+        confidence: (r.confidence * 100).round(),
+      );
+}
  
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -51,7 +58,6 @@ class HistoryScreen extends StatefulWidget {
 }
  
 class _HistoryScreenState extends State<HistoryScreen> {
-  final List<_Item> _items = List.of(_seed);
   final TextEditingController _search = TextEditingController();
   _Filter _filter = _Filter.all;
  
@@ -61,22 +67,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.dispose();
   }
  
-  List<_Item> get _visible {
+  List<_Item> _visible(List<ScanResult> scans, String lang) {
     final q = _search.text.trim().toLowerCase();
-    return _items.where((i) {
-      final okFilter = switch (_filter) {
-        _Filter.all => true,
-        _Filter.diseased => !i.healthy,
-        _Filter.healthy => i.healthy,
-      };
-      return okFilter && (q.isEmpty || i.name.toLowerCase().contains(q));
-    }).toList();
+    return scans
+        .map((r) => _Item.from(r, lang))
+        .where((i) {
+          final okFilter = switch (_filter) {
+            _Filter.all => true,
+            _Filter.diseased => !i.healthy,
+            _Filter.healthy => i.healthy,
+          };
+          return okFilter && (q.isEmpty || i.name.toLowerCase().contains(q));
+        })
+        .toList();
   }
  
-  void _delete(_Item item, int masterIndex) {
+  void _delete(_Item item) {
     HapticFeedback.lightImpact();
-    setState(() => _items.removeAt(masterIndex));
-    ScaffoldMessenger.of(context)
+    final scans = context.read<ScanProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    scans.delete(item.result);
+    messenger
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
@@ -84,9 +95,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           action: SnackBarAction(
             label: 'Undo',
             textColor: AppColors.primaryGlow,
-            onPressed: () => setState(() {
-              _items.insert(masterIndex.clamp(0, _items.length), item);
-            }),
+            onPressed: () => scans.restore(item.result),
           ),
         ),
       );
@@ -100,10 +109,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
  
   @override
   Widget build(BuildContext context) {
-    final visible = _visible;
-    final total = _items.length;
-    final healthy = _items.where((i) => i.healthy).length;
-    final diseased = total - healthy;
+    final scans = context.watch<ScanProvider>();
+    final lang = Localizations.localeOf(context).languageCode;
+    final visible = _visible(scans.scans, lang);
  
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -129,9 +137,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     AppSpacing.small,
                   ),
                   child: _OverviewCard(
-                    total: total,
-                    diseased: diseased,
-                    healthy: healthy,
+                    total: scans.total,
+                    diseased: scans.diseasedCount,
+                    healthy: scans.healthyCount,
+                    showSample: scans.hasSampleData,
                   ),
                 ),
                 Padding(
@@ -208,7 +217,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ],
                   ),
                 ),
-                Expanded(child: _buildList(visible)),
+                Expanded(child: _buildList(scans, visible)),
               ],
             ),
           ),
@@ -217,8 +226,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
  
-  Widget _buildList(List<_Item> visible) {
-    if (_items.isEmpty) {
+  Widget _buildList(ScanProvider scans, List<_Item> visible) {
+    if (!scans.loaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (scans.total == 0) {
       return EmptyState(
         icon: Icons.eco_rounded,
         title: 'No detections yet',
@@ -242,14 +254,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
         lastGroup = item.group;
         children.add(_GroupHeader(item.group));
       }
-      final masterIndex = _items.indexOf(item);
       children.add(
         Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.small),
           child: Dismissible(
             key: ValueKey(item.id),
             direction: DismissDirection.endToStart,
-            onDismissed: (_) => _delete(item, masterIndex),
+            onDismissed: (_) => _delete(item),
             background: Container(
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: AppSpacing.xLarge),
@@ -263,12 +274,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: _HistoryEntry(
               item: item,
               onTap: () {
-                // TODO(db): open the saved scan once records are stored.
+                // TODO: open a saved-scan detail view (needs saved image + heatmap).
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
                   ..showSnackBar(const SnackBar(
-                    content: Text(
-                        'Saved scan details arrive with the database step'),
+                    content: Text('Saved scan details are coming soon'),
                   ));
               },
             ),
@@ -293,10 +303,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
  
 class _OverviewCard extends StatelessWidget {
   final int total, diseased, healthy;
+  final bool showSample;
   const _OverviewCard({
     required this.total,
     required this.diseased,
     required this.healthy,
+    required this.showSample,
   });
  
   @override
@@ -318,7 +330,8 @@ class _OverviewCard extends StatelessWidget {
               const Expanded(
                 child: Text('Overview', style: AppTypography.sectionTitle),
               ),
-              Container(
+              if (showSample)
+                Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.small, vertical: AppSpacing.xSmall),
                 decoration: BoxDecoration(
@@ -514,7 +527,7 @@ class _HistoryEntry extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           SeverityChip(
-                            label: item.severityLabel,
+                            label: item.severityName,
                             severity: item.severity,
                           ),
                           Text(

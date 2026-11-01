@@ -1,35 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
+ 
 import 'l10n/app_localizations.dart';
 import 'providers/app_locale.dart';
+import 'providers/scan_provider.dart';
+import 'repositories/scan_repository.dart';
 import 'screens/splash_screen.dart';
+import 'services/disease_classifier.dart';
 import 'theme/app_theme.dart';
-
+ 
+/// Add sample records on first run so the demo looks populated.
+/// Set to false once real scans should be the only content.
+const bool kSeedDemoData = true;
+ 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(AppTheme.systemUiOverlay);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(const VineGuardApp());
+  SystemChrome.setSystemUIOverlayStyle(AppTheme.systemUiOverlay);
+  runApp(const GrapeCareApp());
 }
-
-class VineGuardApp extends StatelessWidget {
-  const VineGuardApp({super.key});
-
+ 
+class GrapeCareApp extends StatelessWidget {
+  const GrapeCareApp({super.key});
+ 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AppLocaleController(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppLocaleController()),
+        ChangeNotifierProvider(
+          create: (_) => ScanProvider(
+            repository: createScanRepository(),
+            // Swap for TfliteDiseaseClassifier() once the trained model exists.
+            classifier: MockDiseaseClassifier(),
+            seedDemoData: kSeedDemoData,
+          )..load(),
+        ),
+      ],
       child: Builder(
         builder: (context) {
           final localeController = context.watch<AppLocaleController>();
-
+ 
           return MaterialApp(
-            title: 'VineGuard',
+            title: 'GrapeCare AI',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.theme,
             locale: localeController.locale,
@@ -38,13 +55,13 @@ class VineGuardApp extends StatelessWidget {
               if (locale == null) {
                 return supportedLocales.first;
               }
-
+ 
               for (final supportedLocale in supportedLocales) {
                 if (supportedLocale.languageCode == locale.languageCode) {
                   return supportedLocale;
                 }
               }
-
+ 
               return supportedLocales.first;
             },
             localizationsDelegates: AppLocalizations.localizationsDelegates,

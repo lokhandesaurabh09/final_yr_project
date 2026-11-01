@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
  
+import '../data/disease_catalog.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_locale.dart';
+import '../providers/scan_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
+import '../widgets/indicators/severity_chip.dart';
 import '../widgets/disease_alert_card.dart';
 import '../widgets/disease_risk_card.dart';
 import '../widgets/recent_scan_tile.dart';
@@ -11,13 +15,6 @@ import '../widgets/section_header.dart';
 import '../widgets/weather_card.dart';
 import 'history_screen.dart';
 import 'scan_screen.dart';
- 
-// TODO(db): replace with real counts from the scan repository.
-// These match the sample records on the History screen (6 / 4 / 2)
-// so Dashboard and History no longer contradict each other.
-const int _sampleTotal = 6;
-const int _sampleDiseased = 4;
-const int _sampleHealthy = 2;
  
 void _openScan(BuildContext context) {
   Navigator.of(context).push(
@@ -175,6 +172,7 @@ class _Dashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final scans = context.watch<ScanProvider>();
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final gutter = viewportWidth < 600 ? 16.0 : 32.0;
  
@@ -241,6 +239,9 @@ class _Dashboard extends StatelessWidget {
                       diseasesLabel: l10n.diseases,
                       healthyLabel: l10n.healthy,
                       scanLabel: l10n.scanNow,
+                      total: scans.total,
+                      diseased: scans.diseasedCount,
+                      healthy: scans.healthyCount,
                       onScan: () => _openScan(context),
                     ),
                     const SizedBox(height: 20),
@@ -255,30 +256,7 @@ class _Dashboard extends StatelessWidget {
                       actionLabel: l10n.viewAll,
                       onAction: onViewAll,
                     ),
-                    const RecentScanTile(
-                      diseaseName: 'Powdery Mildew',
-                      severity: 'Moderate',
-                      date: 'Today, 9:42 AM',
-                      isHealthy: false,
-                      confidence: 94,
-                      accent: AppColors.warning,
-                    ),
-                    const RecentScanTile(
-                      diseaseName: 'Healthy Leaf',
-                      severity: 'No disease',
-                      date: 'Today, 9:15 AM',
-                      isHealthy: true,
-                      confidence: 99,
-                      accent: AppColors.primary,
-                    ),
-                    const RecentScanTile(
-                      diseaseName: 'Black Rot',
-                      severity: 'Severe',
-                      date: 'Yesterday, 3:00 PM',
-                      isHealthy: false,
-                      confidence: 91,
-                      accent: AppColors.danger,
-                    ),
+                    ..._recentTiles(context, scans),
                   ],
                 ),
               ),
@@ -298,6 +276,9 @@ class _HeroCard extends StatelessWidget {
   final String diseasesLabel;
   final String healthyLabel;
   final String scanLabel;
+  final int total;
+  final int diseased;
+  final int healthy;
   final VoidCallback onScan;
  
   const _HeroCard({
@@ -307,6 +288,9 @@ class _HeroCard extends StatelessWidget {
     required this.diseasesLabel,
     required this.healthyLabel,
     required this.scanLabel,
+    required this.total,
+    required this.diseased,
+    required this.healthy,
     required this.onScan,
   });
  
@@ -353,7 +337,7 @@ class _HeroCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _HeroStat(
-                  value: '$_sampleTotal',
+                  value: '$total',
                   label: scansLabel,
                   icon: Icons.qr_code_scanner_rounded,
                 ),
@@ -361,7 +345,7 @@ class _HeroCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroStat(
-                  value: '$_sampleDiseased',
+                  value: '$diseased',
                   label: diseasesLabel,
                   icon: Icons.warning_amber_rounded,
                 ),
@@ -369,7 +353,7 @@ class _HeroCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroStat(
-                  value: '$_sampleHealthy',
+                  value: '$healthy',
                   label: healthyLabel,
                   icon: Icons.check_circle_outline_rounded,
                 ),
@@ -527,4 +511,33 @@ class _LanguageToggle extends StatelessWidget {
       ),
     );
   }
+}
+ 
+ 
+/// Latest scans as tiles (or a short hint when there are none yet).
+List<Widget> _recentTiles(BuildContext context, ScanProvider scans) {
+  final lang = Localizations.localeOf(context).languageCode;
+  final recent = scans.recent(3);
+  if (recent.isEmpty) {
+    return const [
+      Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          'No scans yet. Tap the camera button to scan your first leaf.',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
+      ),
+    ];
+  }
+  return [
+    for (final r in recent)
+      RecentScanTile(
+        diseaseName: DiseaseCatalog.byId(r.diseaseId).name(lang),
+        severity: severityLabel(r.severity),
+        date: '${dayGroupLabel(r.createdAt)}, ${timeLabel(r.createdAt)}',
+        isHealthy: r.isHealthy,
+        confidence: (r.confidence * 100).round(),
+        accent: toUiSeverity(r.severity).color,
+      ),
+  ];
 }

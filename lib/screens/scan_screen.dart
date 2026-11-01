@@ -3,7 +3,9 @@ import 'dart:ui';
  
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
  
+import '../providers/scan_provider.dart';
 import '../theme/app_theme.dart';
 import 'result_screen.dart';
  
@@ -57,16 +59,20 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       _analyzing = true;
       _step = 0;
     });
-    // Demo timing. Replace with the real classifier call later.
+    // The classifier runs while the step animation plays.
+    // TODO(camera): pass the captured / picked image path here.
+    final classification = context.read<ScanProvider>().classify();
+    // Step timing is for show; it is not real model progress.
     for (var i = 1; i <= _steps.length; i++) {
       await Future.delayed(const Duration(milliseconds: 550));
       if (!mounted) return;
       setState(() => _step = i);
     }
+    final result = await classification;
     await Future.delayed(const Duration(milliseconds: 250));
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const ResultScreen()),
+      MaterialPageRoute(builder: (_) => ResultScreen(result: result)),
     );
   }
  

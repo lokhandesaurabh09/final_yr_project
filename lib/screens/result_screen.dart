@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
  
+import '../data/disease_catalog.dart';
+import '../models/scan_result.dart';
+import '../providers/scan_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
 import '../widgets/buttons/primary_button.dart';
 import '../widgets/cards/app_card.dart';
 import '../widgets/indicators/confidence_bar.dart';
@@ -9,11 +14,13 @@ import '../widgets/indicators/severity_chip.dart';
 import 'home_screen.dart';
  
 // TODO(l10n): move all strings below into the .arb files (en + mr).
-// TODO(model): replace the sample constants with a real ScanResult object.
-const double _sampleConfidence = 0.94;
+ 
+/// Below this confidence we ask the user to retake the photo.
+const double _lowConfidence = 0.70;
  
 class ResultScreen extends StatefulWidget {
-  const ResultScreen({super.key});
+  final ScanResult result;
+  const ResultScreen({super.key, required this.result});
  
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -22,12 +29,22 @@ class ResultScreen extends StatefulWidget {
 class _ResultScreenState extends State<ResultScreen> {
   bool _showHeatmap = false;
   double _heatOpacity = 0.75;
+  bool _saved = false;
+  bool _saving = false;
  
-  void _save() {
+  Future<void> _save() async {
+    if (_saved || _saving) return;
     HapticFeedback.selectionClick();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Saving is not connected in this build yet')),
-    );
+    final scans = context.read<ScanProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _saving = true);
+    await scans.save(widget.result);
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      _saved = true;
+    });
+    messenger.showSnackBar(const SnackBar(content: Text('Saved to history')));
   }
  
   void _goHome() {
@@ -39,6 +56,11 @@ class _ResultScreenState extends State<ResultScreen> {
  
   @override
   Widget build(BuildContext context) {
+    final r = widget.result;
+    final lang = Localizations.localeOf(context).languageCode;
+    final disease = DiseaseCatalog.byId(r.diseaseId);
+    const gap = SizedBox(height: AppSpacing.large);
+ 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppTheme.systemUiOverlay,
       child: Scaffold(
@@ -62,46 +84,52 @@ class _ResultScreenState extends State<ResultScreen> {
                 AppSpacing.xLarge,
               ),
               children: [
-                const _SampleNotice(),
-                const SizedBox(height: AppSpacing.large),
-                _DiagnosisCard(confidence: _sampleConfidence),
-                const SizedBox(height: AppSpacing.large),
+                if (r.isSample) ...[const _SampleNotice(), gap],
+                if (r.confidence < _lowConfidence) ...[
+                  const _LowConfidenceNotice(),
+                  gap,
+                ],
+                _DiagnosisCard(
+                  name: disease.name(lang),
+                  scientificName: disease.scientificName,
+                  severity: r.severity,
+                  confidence: r.confidence,
+                ),
+                gap,
                 _ExplainCard(
                   showHeatmap: _showHeatmap,
                   opacity: _heatOpacity,
                   onToggle: (v) => setState(() => _showHeatmap = v),
                   onOpacity: (v) => setState(() => _heatOpacity = v),
                 ),
-                const SizedBox(height: AppSpacing.large),
-                const _PredictionsCard(),
-                const SizedBox(height: AppSpacing.large),
-                const _TreatmentCard(),
-                const SizedBox(height: AppSpacing.large),
-                const _InfoSection(
+                gap,
+                _PredictionsCard(predictions: r.topPredictions, lang: lang),
+                gap,
+                _TreatmentCard(
+                  title: disease.isHealthy
+                      ? 'Care tips'
+                      : 'Treatment recommendation',
+                  steps: disease.treatment,
+                ),
+                gap,
+                _InfoSection(
                   icon: Icons.info_outline_rounded,
-                  title: 'About this disease',
-                  child: Text(
-                    'Powdery Mildew is a fungal disease caused by Erysiphe necator. '
-                    'It creates white powdery patches on leaves and shoots and '
-                    'spreads fastest in warm, humid conditions. Left untreated it '
-                    'can reduce grape quality and yield.',
-                    style: _bodyStyle,
-                  ),
+                  title: 'About this leaf',
+                  child: Text(disease.about, style: _bodyStyle),
                 ),
-                const SizedBox(height: AppSpacing.large),
-                const _InfoSection(
-                  icon: Icons.search_rounded,
-                  title: 'Symptoms to look for',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _Bullet('White powdery coating on the leaf surface'),
-                      _Bullet('Yellowing and curling of leaves'),
-                      _Bullet('Stunted shoot growth'),
-                      _Bullet('Infected berries may crack or split'),
-                    ],
+                if (disease.symptoms.isNotEmpty) ...[
+                  gap,
+                  _InfoSection(
+                    icon: Icons.search_rounded,
+                    title: 'Symptoms to look for',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final s in disease.symptoms) _Bullet(s),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -130,14 +158,23 @@ class _ResultScreenState extends State<ResultScreen> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: _save,
-                          icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-                          label: const Text('Save'),
+                          onPressed: (_saved || _saving) ? null : _save,
+                          icon: Icon(
+                            _saved
+                                ? Icons.check_rounded
+                                : Icons.bookmark_add_outlined,
+                            size: 18,
+                          ),
+                          label: Text(_saved ? 'Saved' : 'Save'),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size.fromHeight(54),
                             shape: const StadiumBorder(),
-                            side: const BorderSide(
-                                color: AppColors.primary, width: 1.4),
+                            side: BorderSide(
+                              color: _saved
+                                  ? AppColors.border
+                                  : AppColors.primary,
+                              width: 1.4,
+                            ),
                           ),
                         ),
                       ),
@@ -191,8 +228,42 @@ class _SampleNotice extends StatelessWidget {
           SizedBox(width: AppSpacing.small),
           Expanded(
             child: Text(
-              'Sample result. The diagnosis, confidence and heatmap are fixed '
-              'demo content, not model output.',
+              'Demo result from the sample classifier. It is not a real '
+              'diagnosis, and the heatmap below is a placeholder.',
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+ 
+class _LowConfidenceNotice extends StatelessWidget {
+  const _LowConfidenceNotice();
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      decoration: BoxDecoration(
+        color: AppColors.dangerMuted,
+        borderRadius: BorderRadius.circular(AppRadii.control),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.25)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 18, color: AppColors.danger),
+          SizedBox(width: AppSpacing.small),
+          Expanded(
+            child: Text(
+              'The model is not very sure about this leaf. Retake the photo '
+              'in good light with the leaf filling the frame.',
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
@@ -207,8 +278,17 @@ class _SampleNotice extends StatelessWidget {
 }
  
 class _DiagnosisCard extends StatelessWidget {
+  final String name;
+  final String scientificName;
+  final DiseaseSeverity severity;
   final double confidence;
-  const _DiagnosisCard({required this.confidence});
+ 
+  const _DiagnosisCard({
+    required this.name,
+    required this.scientificName,
+    required this.severity,
+    required this.confidence,
+  });
  
   @override
   Widget build(BuildContext context) {
@@ -220,14 +300,14 @@ class _DiagnosisCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SeverityChip(
-                  label: 'Moderate',
-                  severity: Severity.moderate,
+                SeverityChip(
+                  label: severityLabel(severity),
+                  severity: toUiSeverity(severity),
                 ),
                 const SizedBox(height: AppSpacing.medium),
-                const Text(
-                  'Powdery Mildew',
-                  style: TextStyle(
+                Text(
+                  name,
+                  style: const TextStyle(
                     fontSize: 26,
                     height: 1.1,
                     fontWeight: FontWeight.w800,
@@ -235,15 +315,17 @@ class _DiagnosisCard extends StatelessWidget {
                     letterSpacing: -0.4,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xSmall),
-                const Text(
-                  'Erysiphe necator',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.textSecondary,
+                if (scientificName.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xSmall),
+                  Text(
+                    scientificName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -493,15 +575,12 @@ class _ViewToggle extends StatelessWidget {
 }
  
 class _PredictionsCard extends StatelessWidget {
-  const _PredictionsCard();
+  final List<Prediction> predictions;
+  final String lang;
+  const _PredictionsCard({required this.predictions, required this.lang});
  
   @override
   Widget build(BuildContext context) {
-    const rows = [
-      ('Powdery Mildew', 0.94, AppColors.primary),
-      ('Downy Mildew', 0.04, AppColors.warning),
-      ('Healthy Leaf', 0.02, AppColors.textTertiary),
-    ];
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.large),
       child: Column(
@@ -512,14 +591,14 @@ class _PredictionsCard extends StatelessWidget {
             title: 'Top predictions',
           ),
           const SizedBox(height: AppSpacing.medium),
-          for (final r in rows)
+          for (var i = 0; i < predictions.length; i++)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.medium),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    r.$1,
+                    DiseaseCatalog.byId(predictions[i].diseaseId).name(lang),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -527,7 +606,11 @@ class _PredictionsCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  ConfidenceBar(value: r.$2, color: r.$3, showLabel: true),
+                  ConfidenceBar(
+                    value: predictions[i].score,
+                    color: i == 0 ? AppColors.primary : AppColors.textTertiary,
+                    showLabel: true,
+                  ),
                 ],
               ),
             ),
@@ -538,7 +621,9 @@ class _PredictionsCard extends StatelessWidget {
 }
  
 class _TreatmentCard extends StatelessWidget {
-  const _TreatmentCard();
+  final String title;
+  final List<String> steps;
+  const _TreatmentCard({required this.title, required this.steps});
  
   @override
   Widget build(BuildContext context) {
@@ -549,22 +634,16 @@ class _TreatmentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardTitle(
-            icon: Icons.healing_rounded,
-            title: 'Treatment recommendation',
-          ),
-          SizedBox(height: AppSpacing.medium),
-          _Step('1', 'Apply a sulfur-based fungicide every 7–10 days'),
-          _Step('2', 'Improve airflow by pruning dense foliage'),
-          _Step('3', 'Avoid overhead irrigation to reduce humidity'),
-          _Step('4', 'Monitor neighbouring plants for spread'),
-          SizedBox(height: AppSpacing.xSmall),
-          Text(
-            'Sample guidance. Confirm doses and products with a local '
-            'agriculture officer.',
+          _CardTitle(icon: Icons.healing_rounded, title: title),
+          const SizedBox(height: AppSpacing.medium),
+          for (var i = 0; i < steps.length; i++) _Step('${i + 1}', steps[i]),
+          const SizedBox(height: AppSpacing.xSmall),
+          const Text(
+            'General guidance only. Confirm products and doses with the '
+            'label and your local agriculture officer.',
             style: TextStyle(
               fontSize: 12,
               height: 1.4,
