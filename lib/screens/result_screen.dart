@@ -29,7 +29,7 @@ class ResultScreen extends StatefulWidget {
 class _ResultScreenState extends State<ResultScreen> {
   bool _showHeatmap = false;
   double _heatOpacity = 0.75;
-  bool _saved = false;
+  late bool _saved = widget.result.id != null; // opened from history
   bool _saving = false;
  
   Future<void> _save() async {
@@ -899,3 +899,4 @@ class _HeatPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
+ 

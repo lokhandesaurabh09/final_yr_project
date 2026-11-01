@@ -10,6 +10,8 @@ import '../utils/format.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/indicators/confidence_bar.dart';
 import '../widgets/indicators/severity_chip.dart';
+import '../widgets/leaf_thumb.dart';
+import 'result_screen.dart';
 import 'scan_screen.dart';
  
 // TODO(l10n): move strings into the .arb files (en + mr).
@@ -273,14 +275,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             child: _HistoryEntry(
               item: item,
-              onTap: () {
-                // TODO: open a saved-scan detail view (needs saved image + heatmap).
-                ScaffoldMessenger.of(context)
-                  ..clearSnackBars()
-                  ..showSnackBar(const SnackBar(
-                    content: Text('Saved scan details are coming soon'),
-                  ));
-              },
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ResultScreen(result: item.result),
+                ),
+              ),
             ),
           ),
         ),
@@ -493,18 +492,7 @@ class _HistoryEntry extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.medium),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 58,
-                    height: 58,
-                    child: CustomPaint(
-                      painter: _LeafThumbPainter(
-                        spot: item.healthy ? null : color,
-                      ),
-                    ),
-                  ),
-                ),
+                LeafThumb(size: 58, spot: item.healthy ? null : color),
                 const SizedBox(width: AppSpacing.medium),
                 Expanded(
                   child: Column(
@@ -570,58 +558,4 @@ class _HistoryEntry extends StatelessWidget {
       ),
     );
   }
-}
- 
-/// Placeholder leaf thumbnail until real scan images are stored.
-class _LeafThumbPainter extends CustomPainter {
-  final Color? spot;
-  const _LeafThumbPainter({this.spot});
- 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width, h = size.height;
-    final rect = Offset.zero & size;
- 
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFDDE9D4), Color(0xFFBFD5B4)],
-        ).createShader(rect),
-    );
- 
-    final leaf = Path()
-      ..moveTo(w * 0.5, h * 0.1)
-      ..cubicTo(w * 0.88, h * 0.2, w * 0.92, h * 0.7, w * 0.5, h * 0.92)
-      ..cubicTo(w * 0.08, h * 0.7, w * 0.12, h * 0.2, w * 0.5, h * 0.1)
-      ..close();
-    canvas.drawPath(
-      leaf,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF52B788), Color(0xFF2D6A4F)],
-        ).createShader(rect),
-    );
-    canvas.drawLine(
-      Offset(w * 0.5, h * 0.88),
-      Offset(w * 0.5, h * 0.16),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.35)
-        ..strokeWidth = 1.5
-        ..strokeCap = StrokeCap.round,
-    );
- 
-    if (spot != null) {
-      final p = Paint()..color = spot!.withValues(alpha: 0.8);
-      canvas.drawCircle(Offset(w * 0.42, h * 0.4), w * 0.08, p);
-      canvas.drawCircle(Offset(w * 0.62, h * 0.55), w * 0.1, p);
-    }
-  }
- 
-  @override
-  bool shouldRepaint(covariant _LeafThumbPainter old) => old.spot != spot;
 }
