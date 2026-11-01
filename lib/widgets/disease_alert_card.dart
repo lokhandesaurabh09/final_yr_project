@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 
 class DiseaseAlertCard extends StatelessWidget {
@@ -7,11 +8,11 @@ class DiseaseAlertCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.large),
       decoration: BoxDecoration(
         color: AppColors.dangerMuted,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.danger.withValues(alpha: 0.25)),
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -22,16 +23,19 @@ class DiseaseAlertCard extends StatelessWidget {
               color: AppColors.danger.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(11),
             ),
-            child: const Icon(Icons.warning_rounded,
-                color: AppColors.danger, size: 20),
+            child: const Icon(
+              Icons.warning_rounded,
+              color: AppColors.danger,
+              size: 20,
+            ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: AppSpacing.medium),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Black Rot spreading',
+                  'Example disease alert',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -41,7 +45,7 @@ class DiseaseAlertCard extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Detected in 2 recent scans — check neighbouring plants immediately.',
+                  'Black Rot appears in the prototype scan list; this is not a live alert.',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -52,8 +56,11 @@ class DiseaseAlertCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.chevron_right_rounded,
-              color: AppColors.textTertiary, size: 20),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.textTertiary,
+            size: 20,
+          ),
         ],
       ),
     );

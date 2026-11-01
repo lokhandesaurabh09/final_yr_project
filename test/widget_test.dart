@@ -1,17 +1,43 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:flutter_application_1/data/disease_catalog.dart';
+import 'package:flutter_application_1/models/scan_result.dart';
+import 'package:flutter_application_1/repositories/scan_repository.dart';
+import 'package:flutter_application_1/services/disease_classifier.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_application_1/main.dart';
-
 void main() {
-  testWidgets('App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const VineGuardApp());
+  test('mock classifier returns a valid, known result', () async {
+    final result = await MockDiseaseClassifier().classify();
+
+    expect(result.confidence, inInclusiveRange(0, 1));
+    expect(result.topPredictions, isNotEmpty);
+    expect(DiseaseCatalog.byId(result.diseaseId).id, isNot('unknown'));
+  });
+
+  test('ScanResult survives a database map round-trip', () async {
+    final original = await MockDiseaseClassifier().classify();
+    final copy = ScanResult.fromMap(original.copyWith(id: 7).toMap());
+
+    expect(copy.id, 7);
+    expect(copy.diseaseId, original.diseaseId);
+    expect(copy.severity, original.severity);
+    expect(copy.topPredictions.length, original.topPredictions.length);
+  });
+
+  test('in-memory repository inserts, orders and deletes', () async {
+    final repo = InMemoryScanRepository();
+    final classifier = MockDiseaseClassifier();
+
+    final a = await repo.insert(await classifier.classify());
+    await repo.insert(await classifier.classify());
+    expect((await repo.all()).length, 2);
+
+    await repo.delete(a.id!);
+    expect((await repo.all()).length, 1);
+  });
+
+  test('every catalog disease has treatment text', () {
+    for (final d in DiseaseCatalog.all) {
+      expect(d.treatment, isNotEmpty, reason: d.id);
+    }
   });
 }
