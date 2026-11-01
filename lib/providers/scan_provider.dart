@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
- 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/scan_result.dart';
 import '../repositories/scan_repository.dart';
 import '../services/disease_classifier.dart';
- 
+
 /// Single source of truth for scans: Dashboard, History and Result all read
 /// from here, so their numbers can never disagree.
 class ScanProvider extends ChangeNotifier {
@@ -11,49 +12,79 @@ class ScanProvider extends ChangeNotifier {
     required this.repository,
     required this.classifier,
     this.seedDemoData = true,
+    this.prefs,
   });
- 
+
+  static const String _seededKey = 'demo_seeded';
+
+  /// Remembers that sample records were added once, so deleting them sticks.
+  final SharedPreferences? prefs;
+
   final ScanRepository repository;
   final DiseaseClassifier classifier;
- 
+
   /// When the database is empty, add sample records (flagged isSample) so the
   /// app looks populated in a demo. Set to false for real use.
   final bool seedDemoData;
- 
+
   List<ScanResult> _scans = [];
   bool _loaded = false;
- 
+
   List<ScanResult> get scans => List.unmodifiable(_scans);
   bool get loaded => _loaded;
   int get total => _scans.length;
   int get healthyCount => _scans.where((s) => s.isHealthy).length;
   int get diseasedCount => total - healthyCount;
   bool get hasSampleData => _scans.any((s) => s.isSample);
+  int get sampleCount => _scans.where((s) => s.isSample).length;
   List<ScanResult> recent([int n = 3]) => _scans.take(n).toList();
- 
+
   Future<void> load() async {
     _scans = await repository.all();
-    if (_scans.isEmpty && seedDemoData) {
-      for (final s in _demoRecords()) {
-        await repository.insert(s);
-      }
-      _scans = await repository.all();
+    final alreadySeeded = prefs?.getBool(_seededKey) ?? false;
+    if (_scans.isEmpty && seedDemoData && !alreadySeeded) {
+      await _insertSamples();
+      await prefs?.setBool(_seededKey, true);
     }
     _loaded = true;
     notifyListeners();
   }
- 
+
+  Future<void> addSamples() => _insertSamples();
+
+  Future<void> removeSamples() => _removeWhere((s) => s.isSample);
+
+  Future<void> removeAll() => _removeWhere((_) => true);
+
+  Future<void> _insertSamples() async {
+    for (final s in _demoRecords()) {
+      await repository.insert(s);
+    }
+    _scans = await repository.all();
+    notifyListeners();
+  }
+
+  Future<void> _removeWhere(bool Function(ScanResult) test) async {
+    final doomed = _scans.where(test).toList();
+    _scans = _scans.where((s) => !test(s)).toList();
+    notifyListeners();
+    for (final s in doomed) {
+      final id = s.id;
+      if (id != null) await repository.delete(id);
+    }
+  }
+
   /// Runs the classifier. Does NOT save: the user presses Save on Result.
   Future<ScanResult> classify({String? imagePath}) =>
       classifier.classify(imagePath: imagePath);
- 
+
   Future<ScanResult> save(ScanResult result) async {
     final saved = await repository.insert(result);
     _scans = await repository.all();
     notifyListeners();
     return saved;
   }
- 
+
   Future<void> delete(ScanResult result) async {
     final id = result.id;
     if (id == null) return;
@@ -62,10 +93,10 @@ class ScanProvider extends ChangeNotifier {
     notifyListeners();
     await repository.delete(id);
   }
- 
+
   /// Undo for delete.
   Future<void> restore(ScanResult result) => save(result);
- 
+
   List<ScanResult> _demoRecords() {
     final now = DateTime.now();
     ScanResult r(String id, double c, DiseaseSeverity sev, Duration ago,
@@ -116,4 +147,3 @@ class ScanProvider extends ChangeNotifier {
     ];
   }
 }
- 

@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'VineGuard'**
+  /// **'GrapeCare AI'**
   String get appName;
 
   /// No description provided for @dashboard.
@@ -331,6 +331,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Language'**
   String get selectLanguage;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @guide.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide'**
+  String get guide;
+
+  /// No description provided for @guideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn to recognise common grape leaf problems'**
+  String get guideSubtitle;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @darkModeSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode is coming soon'**
+  String get darkModeSoon;
+
+  /// No description provided for @appSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App settings'**
+  String get appSettings;
+
+  /// No description provided for @modelAndData.
+  ///
+  /// In en, this message translates to:
+  /// **'Model & data'**
+  String get modelAndData;
+
+  /// No description provided for @modelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get modelName;
+
+  /// No description provided for @demoModelNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Results come from a demo classifier. The trained model is not connected yet.'**
+  String get demoModelNote;
+
+  /// No description provided for @savedScans.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved scans'**
+  String get savedScans;
+
+  /// No description provided for @sampleRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample records'**
+  String get sampleRecords;
+
+  /// No description provided for @removeSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove sample records'**
+  String get removeSamples;
+
+  /// No description provided for @addSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Add sample records'**
+  String get addSamples;
+
+  /// No description provided for @deleteAllScans.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all scans'**
+  String get deleteAllScans;
+
+  /// No description provided for @removeSamplesWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The sample records will be removed from this device.'**
+  String get removeSamplesWarning;
+
+  /// No description provided for @deleteAllWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'All saved scans will be removed from this device.'**
+  String get deleteAllWarning;
+
+  /// No description provided for @confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure?'**
+  String get confirmTitle;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @aboutApp.
+  ///
+  /// In en, this message translates to:
+  /// **'About the app'**
+  String get aboutApp;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get appVersion;
+
+  /// No description provided for @projectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explainable AI based grape leaf disease detection and classification using deep learning'**
+  String get projectTitle;
+
+  /// No description provided for @privacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan results are stored only on this device.'**
+  String get privacyNote;
 }
 
 class _AppLocalizationsDelegate

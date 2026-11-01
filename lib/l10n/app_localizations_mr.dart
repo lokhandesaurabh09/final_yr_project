@@ -10,7 +10,7 @@ class AppLocalizationsMr extends AppLocalizations {
   AppLocalizationsMr([String locale = 'mr']) : super(locale);
 
   @override
-  String get appName => 'VineGuard';
+  String get appName => 'GrapeCare AI';
 
   @override
   String get dashboard => 'डॅशबोर्ड';
@@ -125,4 +125,86 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get selectLanguage => 'भाषा निवडा';
+
+  @override
+  String get settings => 'सेटिंग्ज';
+
+  @override
+  String get guide => 'मार्गदर्शक';
+
+  @override
+  String get guideSubtitle =>
+      'द्राक्षाच्या पानांवरील सामान्य समस्या ओळखायला शिका';
+
+  @override
+  String get language => 'भाषा';
+
+  @override
+  String get theme => 'थीम';
+
+  @override
+  String get themeLight => 'लाइट';
+
+  @override
+  String get darkModeSoon => 'डार्क मोड लवकरच येत आहे';
+
+  @override
+  String get appSettings => 'अ‍ॅप सेटिंग्ज';
+
+  @override
+  String get modelAndData => 'मॉडेल आणि डेटा';
+
+  @override
+  String get modelName => 'मॉडेल';
+
+  @override
+  String get demoModelNote =>
+      'निकाल डेमो मॉडेलमधून येत आहेत. प्रशिक्षित मॉडेल अजून जोडलेले नाही.';
+
+  @override
+  String get savedScans => 'जतन केलेले स्कॅन';
+
+  @override
+  String get sampleRecords => 'नमुना नोंदी';
+
+  @override
+  String get removeSamples => 'नमुना नोंदी काढा';
+
+  @override
+  String get addSamples => 'नमुना नोंदी जोडा';
+
+  @override
+  String get deleteAllScans => 'सर्व स्कॅन हटवा';
+
+  @override
+  String get removeSamplesWarning => 'नमुना नोंदी या उपकरणातून काढल्या जातील.';
+
+  @override
+  String get deleteAllWarning =>
+      'सर्व जतन केलेले स्कॅन या उपकरणातून काढले जातील.';
+
+  @override
+  String get confirmTitle => 'तुम्हाला खात्री आहे का?';
+
+  @override
+  String get cancel => 'रद्द करा';
+
+  @override
+  String get delete => 'हटवा';
+
+  @override
+  String get done => 'झाले';
+
+  @override
+  String get aboutApp => 'अ‍ॅपबद्दल';
+
+  @override
+  String get appVersion => 'आवृत्ती';
+
+  @override
+  String get projectTitle =>
+      'सखोल शिक्षण (डीप लर्निंग) वापरून स्पष्टीकरणक्षम एआय आधारित द्राक्ष पानांवरील रोग ओळख व वर्गीकरण';
+
+  @override
+  String get privacyNote => 'स्कॅन निकाल फक्त या उपकरणावर साठवले जातात.';
 }

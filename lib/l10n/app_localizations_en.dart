@@ -10,7 +10,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'VineGuard';
+  String get appName => 'GrapeCare AI';
 
   @override
   String get dashboard => 'Dashboard';
@@ -125,4 +125,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectLanguage => 'Select Language';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get guide => 'Guide';
+
+  @override
+  String get guideSubtitle => 'Learn to recognise common grape leaf problems';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get darkModeSoon => 'Dark mode is coming soon';
+
+  @override
+  String get appSettings => 'App settings';
+
+  @override
+  String get modelAndData => 'Model & data';
+
+  @override
+  String get modelName => 'Model';
+
+  @override
+  String get demoModelNote =>
+      'Results come from a demo classifier. The trained model is not connected yet.';
+
+  @override
+  String get savedScans => 'Saved scans';
+
+  @override
+  String get sampleRecords => 'Sample records';
+
+  @override
+  String get removeSamples => 'Remove sample records';
+
+  @override
+  String get addSamples => 'Add sample records';
+
+  @override
+  String get deleteAllScans => 'Delete all scans';
+
+  @override
+  String get removeSamplesWarning =>
+      'The sample records will be removed from this device.';
+
+  @override
+  String get deleteAllWarning =>
+      'All saved scans will be removed from this device.';
+
+  @override
+  String get confirmTitle => 'Are you sure?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get aboutApp => 'About the app';
+
+  @override
+  String get appVersion => 'Version';
+
+  @override
+  String get projectTitle =>
+      'Explainable AI based grape leaf disease detection and classification using deep learning';
+
+  @override
+  String get privacyNote => 'Scan results are stored only on this device.';
 }
