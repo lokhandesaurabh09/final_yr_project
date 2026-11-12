@@ -132,7 +132,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           const GrapeLogo(size: 36),
                           const SizedBox(width: AppSpacing.small),
                           const Text(
-                            'GrapeCare AI',
+                            'VineGuard',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -424,3 +424,4 @@ class _FloatState extends State<_Float> with SingleTickerProviderStateMixin {
     );
   }
 }
+ 

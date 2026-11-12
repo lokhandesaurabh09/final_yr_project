@@ -10,7 +10,7 @@ class AppLocalizationsMr extends AppLocalizations {
   AppLocalizationsMr([String locale = 'mr']) : super(locale);
 
   @override
-  String get appName => 'GrapeCare AI';
+  String get appName => 'VineGuard';
 
   @override
   String get dashboard => 'डॅशबोर्ड';
@@ -207,4 +207,43 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get privacyNote => 'स्कॅन निकाल फक्त या उपकरणावर साठवले जातात.';
+
+  @override
+  String get photoCheckTitle => 'तुमचा फोटो तपासा';
+
+  @override
+  String get photoTooDark => 'फोटो अंधारा दिसत आहे. चांगल्या प्रकाशात घ्या.';
+
+  @override
+  String get photoTooBright => 'फोटो खूप उजळ दिसत आहे. थेट प्रकाश टाळा.';
+
+  @override
+  String get photoNoLeaf =>
+      'द्राक्षाचे पान स्पष्ट दिसत नसेल. चौकटीत एक पान भरून घ्या.';
+
+  @override
+  String get useAnyway => 'तरीही वापरा';
+
+  @override
+  String get retake => 'पुन्हा घ्या';
+
+  @override
+  String get pickFailed => 'फोटो उघडता आला नाही. कृपया पुन्हा प्रयत्न करा.';
+
+  @override
+  String get cameraNotAvailable =>
+      'येथे कॅमेरा उपलब्ध नाही. गॅलरीतून फोटो निवडा.';
+
+  @override
+  String get noPhotoYet => 'अजून फोटो नाही';
+
+  @override
+  String get takeOrChoose => 'फोटो काढा किंवा गॅलरीतून निवडा';
+
+  @override
+  String get demoPhotoNote =>
+      'तुमचा फोटो जोडला आहे, पण डेमो मॉडेल तो वाचत नाही. दाखवलेले निदान नमुना निकाल आहे.';
+
+  @override
+  String get heatmapNeedsModel => 'प्रशिक्षित मॉडेल जोडल्यावर हीटमॅप दिसेल';
 }

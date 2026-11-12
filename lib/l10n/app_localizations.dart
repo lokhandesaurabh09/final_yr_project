@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'GrapeCare AI'**
+  /// **'VineGuard'**
   String get appName;
 
   /// No description provided for @dashboard.
@@ -487,6 +487,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scan results are stored only on this device.'**
   String get privacyNote;
+
+  /// No description provided for @photoCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your photo'**
+  String get photoCheckTitle;
+
+  /// No description provided for @photoTooDark.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo looks dark. Move to better light.'**
+  String get photoTooDark;
+
+  /// No description provided for @photoTooBright.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo looks overexposed. Avoid direct glare.'**
+  String get photoTooBright;
+
+  /// No description provided for @photoNoLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'A grape leaf may not be clearly visible. Fill the frame with one leaf.'**
+  String get photoNoLeaf;
+
+  /// No description provided for @useAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Use anyway'**
+  String get useAnyway;
+
+  /// No description provided for @retake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get retake;
+
+  /// No description provided for @pickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the photo. Please try again.'**
+  String get pickFailed;
+
+  /// No description provided for @cameraNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera is not available here. Choose a photo from the gallery.'**
+  String get cameraNotAvailable;
+
+  /// No description provided for @noPhotoYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No photo yet'**
+  String get noPhotoYet;
+
+  /// No description provided for @takeOrChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo or choose one from your gallery'**
+  String get takeOrChoose;
+
+  /// No description provided for @demoPhotoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your photo is attached, but the demo classifier does not read it. The diagnosis shown is sample output.'**
+  String get demoPhotoNote;
+
+  /// No description provided for @heatmapNeedsModel.
+  ///
+  /// In en, this message translates to:
+  /// **'The heatmap appears once the trained model is connected'**
+  String get heatmapNeedsModel;
 }
 
 class _AppLocalizationsDelegate

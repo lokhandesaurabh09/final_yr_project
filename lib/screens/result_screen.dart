@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
  
 import '../data/disease_catalog.dart';
+import '../l10n/app_localizations.dart';
 import '../models/scan_result.dart';
 import '../providers/scan_provider.dart';
 import '../theme/app_theme.dart';
@@ -11,6 +12,7 @@ import '../widgets/buttons/primary_button.dart';
 import '../widgets/cards/app_card.dart';
 import '../widgets/indicators/confidence_bar.dart';
 import '../widgets/indicators/severity_chip.dart';
+import '../widgets/scan_image.dart';
 import 'home_screen.dart';
  
 // TODO(l10n): move all strings below into the .arb files (en + mr).
@@ -84,7 +86,10 @@ class _ResultScreenState extends State<ResultScreen> {
                 AppSpacing.xLarge,
               ),
               children: [
-                if (r.isSample) ...[const _SampleNotice(), gap],
+                if (r.isSample) ...[
+                  _SampleNotice(hasPhoto: r.imagePath != null),
+                  gap,
+                ],
                 if (r.confidence < _lowConfidence) ...[
                   const _LowConfidenceNotice(),
                   gap,
@@ -97,6 +102,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
                 gap,
                 _ExplainCard(
+                  imagePath: r.imagePath,
                   showHeatmap: _showHeatmap,
                   opacity: _heatOpacity,
                   onToggle: (v) => setState(() => _showHeatmap = v),
@@ -210,10 +216,15 @@ const TextStyle _bodyStyle = TextStyle(
 // ---------------------------------------------------------------------------
  
 class _SampleNotice extends StatelessWidget {
-  const _SampleNotice();
+  final bool hasPhoto;
+  const _SampleNotice({required this.hasPhoto});
  
   @override
   Widget build(BuildContext context) {
+    final text = hasPhoto
+        ? AppLocalizations.of(context)!.demoPhotoNote
+        : 'Demo result from the sample classifier. It is not a real '
+            'diagnosis, and the heatmap below is a placeholder.';
     return Container(
       padding: const EdgeInsets.all(AppSpacing.medium),
       decoration: BoxDecoration(
@@ -221,16 +232,15 @@ class _SampleNotice extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.control),
         border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.science_outlined, size: 18, color: AppColors.warning),
-          SizedBox(width: AppSpacing.small),
+          const Icon(Icons.science_outlined, size: 18, color: AppColors.warning),
+          const SizedBox(width: AppSpacing.small),
           Expanded(
             child: Text(
-              'Demo result from the sample classifier. It is not a real '
-              'diagnosis, and the heatmap below is a placeholder.',
-              style: TextStyle(
+              text,
+              style: const TextStyle(
                 fontSize: 13,
                 height: 1.4,
                 color: AppColors.textPrimary,
@@ -393,12 +403,14 @@ class _ConfidenceRing extends StatelessWidget {
  
 /// Explainable-AI card: Original / Grad-CAM toggle + opacity slider.
 class _ExplainCard extends StatelessWidget {
+  final String? imagePath;
   final bool showHeatmap;
   final double opacity;
   final ValueChanged<bool> onToggle;
   final ValueChanged<double> onOpacity;
  
   const _ExplainCard({
+    this.imagePath,
     required this.showHeatmap,
     required this.opacity,
     required this.onToggle,
@@ -426,12 +438,18 @@ class _ExplainCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  const CustomPaint(painter: _LeafPainter()),
-                  AnimatedOpacity(
-                    opacity: showHeatmap ? opacity : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const CustomPaint(painter: _HeatPainter()),
-                  ),
+                  if (imagePath != null)
+                    ScanImage(path: imagePath!, fit: BoxFit.cover)
+                  else
+                    const CustomPaint(painter: _LeafPainter()),
+                  if (imagePath == null)
+                    AnimatedOpacity(
+                      opacity: showHeatmap ? opacity : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const CustomPaint(painter: _HeatPainter()),
+                    )
+                  else if (showHeatmap)
+                    const Positioned.fill(child: _HeatmapUnavailable()),
                   Positioned(
                     left: 10,
                     top: 10,
@@ -443,7 +461,9 @@ class _ExplainCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        showHeatmap ? 'GRAD-CAM (SAMPLE)' : 'ORIGINAL (SAMPLE)',
+                        showHeatmap
+                            ? 'GRAD-CAM${imagePath == null ? ' (SAMPLE)' : ''}'
+                            : 'ORIGINAL${imagePath == null ? ' (SAMPLE)' : ''}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -457,7 +477,7 @@ class _ExplainCard extends StatelessWidget {
               ),
             ),
           ),
-          if (showHeatmap) ...[
+          if (showHeatmap && imagePath == null) ...[
             const SizedBox(height: AppSpacing.small),
             Row(
               children: [
@@ -515,6 +535,37 @@ class _ExplainCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+ 
+/// Shown over a real photo: we must not draw a fake heatmap on it.
+class _HeatmapUnavailable extends StatelessWidget {
+  const _HeatmapUnavailable();
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.5),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(AppSpacing.large),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.layers_clear_rounded, color: Colors.white, size: 34),
+          const SizedBox(height: AppSpacing.small),
+          Text(
+            AppLocalizations.of(context)!.heatmapNeedsModel,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.4,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -899,4 +950,3 @@ class _HeatPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
- 

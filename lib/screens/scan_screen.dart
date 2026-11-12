@@ -1,11 +1,16 @@
 import 'dart:math' as math;
+
 import 'dart:ui';
  
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
  
+import '../l10n/app_localizations.dart';
 import '../providers/scan_provider.dart';
+import '../services/image_store.dart';
+import '../services/photo_quality.dart';
 import '../theme/app_theme.dart';
 import 'result_screen.dart';
  
@@ -28,6 +33,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   bool _analyzing = false;
   bool _flashOn = false; // visual only until the camera plugin is wired in
   int _step = 0;
+  bool _picking = false;
+  Uint8List? _bytes; // preview of the chosen photo
+  final ImagePicker _picker = ImagePicker();
  
   late final AnimationController _pulse;
   late final AnimationController _scan;
@@ -52,7 +60,111 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     super.dispose();
   }
  
-  Future<void> _startScan() async {
+  String _issueText(AppLocalizations l, PhotoIssue i) => switch (i) {
+        PhotoIssue.tooDark => l.photoTooDark,
+        PhotoIssue.tooBright => l.photoTooBright,
+        PhotoIssue.noLeaf => l.photoNoLeaf,
+      };
+ 
+  Future<bool> _confirmPhoto(List<PhotoIssue> issues) async {
+    final l10n = AppLocalizations.of(context)!;
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.photoCheckTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final i in issues)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline_rounded,
+                        size: 18, color: AppColors.warning),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_issueText(l10n, i))),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.retake),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.useAnyway),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+ 
+  /// Opens the camera or gallery, checks the photo, then runs the scan.
+  Future<void> _pick(ImageSource source) async {
+    if (_analyzing || _picking) return;
+    _picking = true;
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+ 
+    try {
+      XFile? file;
+      try {
+        file = await _picker.pickImage(
+          source: source,
+          maxWidth: 1600,
+          imageQuality: 88,
+        );
+      } catch (_) {
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(SnackBar(
+            content: Text(source == ImageSource.camera
+                ? l10n.cameraNotAvailable
+                : l10n.pickFailed),
+          ));
+        return;
+      }
+      if (file == null || !mounted) return; // user cancelled
+ 
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() => _bytes = bytes);
+ 
+      final issues = await PhotoQuality.check(bytes);
+      if (!mounted) return;
+      if (issues.isNotEmpty) {
+        final proceed = await _confirmPhoto(issues);
+        if (!mounted) return;
+        if (!proceed) {
+          setState(() => _bytes = null);
+          return;
+        }
+      }
+ 
+      final path = await ImageStore.persist(file);
+      if (!mounted) return;
+      _picking = false;
+      await _startScan(imagePath: path);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _bytes = null);
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(l10n.pickFailed)));
+    } finally {
+      _picking = false;
+    }
+  }
+ 
+  Future<void> _startScan({String? imagePath}) async {
     if (_analyzing) return;
     HapticFeedback.mediumImpact();
     setState(() {
@@ -60,8 +172,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       _step = 0;
     });
     // The classifier runs while the step animation plays.
-    // TODO(camera): pass the captured / picked image path here.
-    final classification = context.read<ScanProvider>().classify();
+    final classification =
+        context.read<ScanProvider>().classify(imagePath: imagePath);
     // Step timing is for show; it is not real model progress.
     for (var i = 1; i <= _steps.length; i++) {
       await Future.delayed(const Duration(milliseconds: 550));
@@ -150,32 +262,58 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               width: side,
               height: side,
               child: CustomPaint(
-                painter: _FramePainter(
+                foregroundPainter: _FramePainter(
                   pulse: _pulse,
                   scan: _scan,
                   analyzing: _analyzing,
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.eco_rounded,
-                        size: 54,
-                        color: Colors.white.withValues(alpha: 0.35),
-                      ),
-                      const SizedBox(height: AppSpacing.small),
-                      Text(
-                        'Camera preview',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.55),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                child: _bytes != null
+                    ? Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(22),
+                          child: Image.memory(
+                            _bytes!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.large),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.eco_rounded,
+                                size: 54,
+                                color: Colors.white.withValues(alpha: 0.35),
+                              ),
+                              const SizedBox(height: AppSpacing.small),
+                              Text(
+                                AppLocalizations.of(context)!.noPhotoYet,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                AppLocalizations.of(context)!.takeOrChoose,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontSize: 12,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
               ),
             ),
             const SizedBox(height: AppSpacing.xLarge),
@@ -238,12 +376,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                 _SideAction(
                   icon: Icons.photo_library_outlined,
                   label: 'Gallery',
-                  onTap: _startScan, // demo: opens a sample result
+                  onTap: () => _pick(ImageSource.gallery),
                 ),
                 _CaptureButton(
                   pulse: _pulse,
                   analyzing: _analyzing,
-                  onTap: _startScan,
+                  onTap: () => _pick(ImageSource.camera),
                 ),
                 const _SideAction(
                   icon: Icons.flip_camera_ios_outlined,
@@ -255,10 +393,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: AppSpacing.medium),
           Text(
-            'Demo mode: capture opens a sample result',
+            AppLocalizations.of(context)!.demoPhotoNote,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 12,
+              height: 1.4,
             ),
           ),
         ],

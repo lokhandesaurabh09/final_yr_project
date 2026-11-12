@@ -1,8 +1,8 @@
 import 'dart:math' as math;
-
+ 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+ 
 import '../data/disease_catalog.dart';
 import '../l10n/app_localizations.dart';
 import '../models/scan_result.dart';
@@ -14,52 +14,55 @@ import '../widgets/cards/app_card.dart';
 import '../widgets/grape_logo.dart';
 import '../widgets/indicators/severity_chip.dart';
 import '../widgets/leaf_thumb.dart';
+import '../widgets/pressable_scale.dart';
 import '../widgets/section_header.dart';
 import 'guide_screen.dart';
 import 'history_screen.dart';
 import 'result_screen.dart';
 import 'scan_screen.dart';
 import 'settings_screen.dart';
-
+ 
 // TODO(l10n): a few English-only strings below (weather text, advisory).
 // TODO(weather): replace the demo weather / risk numbers with real data.
-
+ 
 void _openScan(BuildContext context) {
   Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => const ScanScreen()),
   );
 }
-
+ 
 void _openResult(BuildContext context, ScanResult r) {
   Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => ResultScreen(result: r)),
   );
 }
-
+ 
 String _sevText(AppLocalizations l, DiseaseSeverity s) => switch (s) {
       DiseaseSeverity.healthy => l.noDisease,
       DiseaseSeverity.mild => l.mild,
       DiseaseSeverity.moderate => l.moderate,
       DiseaseSeverity.severe => l.severe,
     };
-
+ 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
+ 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
+ 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-
+ 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
+ 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: IndexedStack(
+      body: _TabFade(
+        index: _selectedIndex,
+        child: IndexedStack(
         index: _selectedIndex,
         children: [
           _Dashboard(onViewAll: () => setState(() => _selectedIndex = 1)),
@@ -68,7 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SettingsScreen(),
         ],
       ),
-      floatingActionButton: Container(
+      ),
+      floatingActionButton: PressableScale(
+        scale: 0.92,
+        child: Container(
         width: 66,
         height: 66,
         decoration: BoxDecoration(
@@ -98,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+      ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -150,20 +157,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
+ 
 class _NavBtn extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback onTap;
-
+ 
   const _NavBtn({
     required this.icon,
     required this.label,
     required this.active,
     required this.onTap,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.primary : AppColors.textTertiary;
@@ -203,32 +210,32 @@ class _NavBtn extends StatelessWidget {
     );
   }
 }
-
-
+ 
+ 
 // ===========================================================================
 // Dashboard
 // ===========================================================================
-
+ 
 class _Dashboard extends StatelessWidget {
   final VoidCallback onViewAll;
   const _Dashboard({required this.onViewAll});
-
+ 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scans = context.watch<ScanProvider>();
     final lang = Localizations.localeOf(context).languageCode;
     final gutter = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 32.0;
-
+ 
     // Most recent scan that needs action.
     final attention = scans.scans
         .where((s) =>
             s.severity == DiseaseSeverity.severe ||
             s.severity == DiseaseSeverity.moderate)
         .firstOrNull;
-
+ 
     const gap = SizedBox(height: 18);
-
+ 
     return SafeArea(
       bottom: false,
       child: SingleChildScrollView(
@@ -332,13 +339,13 @@ class _Dashboard extends StatelessWidget {
     );
   }
 }
-
+ 
 /// Fade + slide-up entrance, slightly later for each [index].
 class _Reveal extends StatelessWidget {
   final int index;
   final Widget child;
   const _Reveal({required this.index, required this.child});
-
+ 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
@@ -353,11 +360,11 @@ class _Reveal extends StatelessWidget {
     );
   }
 }
-
+ 
 class _Skeleton extends StatelessWidget {
   final double height;
   const _Skeleton({required this.height});
-
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -369,11 +376,11 @@ class _Skeleton extends StatelessWidget {
     );
   }
 }
-
+ 
 // ---------------------------------------------------------------------------
 // Header
 // ---------------------------------------------------------------------------
-
+ 
 class _Header extends StatelessWidget {
   final String greeting;
   final bool hasAlert;
@@ -383,7 +390,7 @@ class _Header extends StatelessWidget {
     required this.hasAlert,
     required this.onBell,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -405,7 +412,7 @@ class _Header extends StatelessWidget {
                 ),
               ),
               const Text(
-                'GrapeCare AI',
+                'VineGuard',
                 style: TextStyle(
                   fontSize: 22,
                   height: 1.15,
@@ -462,16 +469,16 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
+ 
 class _LanguageToggle extends StatelessWidget {
   const _LanguageToggle();
-
+ 
   @override
   Widget build(BuildContext context) {
     final controller = context.read<AppLocaleController>();
     final current = Localizations.localeOf(context);
     final isEn = current.languageCode == 'en';
-
+ 
     return Semantics(
       button: true,
       label: 'Change language',
@@ -506,11 +513,11 @@ class _LanguageToggle extends StatelessWidget {
     );
   }
 }
-
+ 
 // ---------------------------------------------------------------------------
 // Hero
 // ---------------------------------------------------------------------------
-
+ 
 class _HeroCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -519,7 +526,7 @@ class _HeroCard extends StatelessWidget {
   final bool showDemo;
   final VoidCallback onScan;
   final VoidCallback onGallery;
-
+ 
   const _HeroCard({
     required this.title,
     required this.subtitle,
@@ -529,7 +536,7 @@ class _HeroCard extends StatelessWidget {
     required this.onScan,
     required this.onGallery,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -679,7 +686,7 @@ class _HeroCard extends StatelessWidget {
     );
   }
 }
-
+ 
 class _HeroButton extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -691,11 +698,11 @@ class _HeroButton extends StatelessWidget {
     required this.filled,
     required this.onTap,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     final fg = filled ? AppColors.primaryDark : Colors.white;
-    return Semantics(
+    return PressableScale(child: Semantics(
       button: true,
       label: label,
       child: Material(
@@ -732,14 +739,14 @@ class _HeroButton extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }
-
+ 
 // ---------------------------------------------------------------------------
 // Vineyard health (donut + legend)
 // ---------------------------------------------------------------------------
-
+ 
 class _HealthCard extends StatelessWidget {
   final String title;
   final String healthyLabel;
@@ -748,7 +755,7 @@ class _HealthCard extends StatelessWidget {
   final int total;
   final int healthy;
   final int diseased;
-
+ 
   const _HealthCard({
     required this.title,
     required this.healthyLabel,
@@ -758,12 +765,12 @@ class _HealthCard extends StatelessWidget {
     required this.healthy,
     required this.diseased,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     final hf = total == 0 ? 0.0 : healthy / total;
     final df = total == 0 ? 0.0 : diseased / total;
-
+ 
     return AppCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -853,7 +860,7 @@ class _HealthCard extends StatelessWidget {
     );
   }
 }
-
+ 
 class _LegendRow extends StatelessWidget {
   final Color color;
   final String label;
@@ -863,7 +870,7 @@ class _LegendRow extends StatelessWidget {
     required this.label,
     required this.value,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -897,18 +904,18 @@ class _LegendRow extends StatelessWidget {
     );
   }
 }
-
+ 
 class _DonutPainter extends CustomPainter {
   final double healthyFraction;
   final double diseasedFraction;
   final double progress;
-
+ 
   const _DonutPainter({
     required this.healthyFraction,
     required this.diseasedFraction,
     required this.progress,
   });
-
+ 
   @override
   void paint(Canvas canvas, Size size) {
     const stroke = 14.0;
@@ -919,7 +926,7 @@ class _DonutPainter extends CustomPainter {
     final base = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke;
-
+ 
     canvas.drawArc(
       rect,
       0,
@@ -927,17 +934,17 @@ class _DonutPainter extends CustomPainter {
       false,
       base..color = AppColors.primaryMuted,
     );
-
+ 
     if (healthyFraction + diseasedFraction == 0) return;
-
+ 
     final both = healthyFraction > 0 && diseasedFraction > 0;
     final gap = both ? 0.10 : 0.0;
     const full = math.pi * 2;
     final cap = both ? StrokeCap.butt : StrokeCap.round;
-
+ 
     final hSweep = full * healthyFraction * progress;
     final dSweep = full * diseasedFraction * progress;
-
+ 
     if (healthyFraction > 0) {
       canvas.drawArc(
         rect,
@@ -961,25 +968,25 @@ class _DonutPainter extends CustomPainter {
       );
     }
   }
-
+ 
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
       old.healthyFraction != healthyFraction ||
       old.diseasedFraction != diseasedFraction ||
       old.progress != progress;
 }
-
+ 
 // ---------------------------------------------------------------------------
 // Needs attention
 // ---------------------------------------------------------------------------
-
+ 
 class _AttentionCard extends StatelessWidget {
   final String title;
   final String name;
   final String detail;
   final bool severe;
   final VoidCallback onTap;
-
+ 
   const _AttentionCard({
     required this.title,
     required this.name,
@@ -987,12 +994,12 @@ class _AttentionCard extends StatelessWidget {
     required this.severe,
     required this.onTap,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     final color = severe ? AppColors.danger : AppColors.warning;
     final bg = severe ? AppColors.dangerMuted : AppColors.warningMuted;
-
+ 
     return Material(
       color: bg,
       borderRadius: BorderRadius.circular(AppRadii.large),
@@ -1062,16 +1069,16 @@ class _AttentionCard extends StatelessWidget {
     );
   }
 }
-
+ 
 // ---------------------------------------------------------------------------
 // Conditions: weather + disease risk (demo values)
 // ---------------------------------------------------------------------------
-
+ 
 class _ConditionsCard extends StatelessWidget {
   final AppLocalizations l10n;
   final String lang;
   const _ConditionsCard({required this.l10n, required this.lang});
-
+ 
   // Demo values. Replace with live weather + rule-based risk later.
   static const _risks = [
     ('powdery_mildew', 72),
@@ -1079,7 +1086,7 @@ class _ConditionsCard extends StatelessWidget {
     ('downy_mildew', 28),
     ('leaf_blight', 18),
   ];
-
+ 
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -1275,7 +1282,7 @@ class _ConditionsCard extends StatelessWidget {
     );
   }
 }
-
+ 
 class _MiniStat extends StatelessWidget {
   final IconData icon;
   final String value;
@@ -1285,7 +1292,7 @@ class _MiniStat extends StatelessWidget {
     required this.value,
     required this.label,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1324,13 +1331,13 @@ class _MiniStat extends StatelessWidget {
     );
   }
 }
-
+ 
 class _RiskRow extends StatelessWidget {
   final String id;
   final int pct;
   final String lang;
   const _RiskRow({required this.id, required this.pct, required this.lang});
-
+ 
   @override
   Widget build(BuildContext context) {
     final color = SeverityStyle.forPercent(pct.toDouble());
@@ -1379,11 +1386,11 @@ class _RiskRow extends StatelessWidget {
     );
   }
 }
-
+ 
 // ---------------------------------------------------------------------------
 // Recent scans
 // ---------------------------------------------------------------------------
-
+ 
 class _RecentList extends StatelessWidget {
   final ScanProvider scans;
   final AppLocalizations l10n;
@@ -1393,7 +1400,7 @@ class _RecentList extends StatelessWidget {
     required this.l10n,
     required this.lang,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     if (!scans.loaded) {
@@ -1446,7 +1453,7 @@ class _RecentList extends StatelessWidget {
     );
   }
 }
-
+ 
 class _ScanTile extends StatelessWidget {
   final ScanResult result;
   final AppLocalizations l10n;
@@ -1456,18 +1463,22 @@ class _ScanTile extends StatelessWidget {
     required this.l10n,
     required this.lang,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     final ui = toUiSeverity(result.severity);
     final color = ui.color;
-
+ 
     return AppCard(
       padding: const EdgeInsets.all(12),
       onTap: () => _openResult(context, result),
       child: Row(
         children: [
-          LeafThumb(size: 56, spot: result.isHealthy ? null : color),
+          LeafThumb(
+            size: 56,
+            spot: result.isHealthy ? null : color,
+            imagePath: result.imagePath,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -1533,3 +1544,51 @@ class _ScanTile extends StatelessWidget {
     );
   }
 }
+ 
+ 
+/// Soft fade + slide whenever the selected tab changes.
+class _TabFade extends StatefulWidget {
+  final int index;
+  final Widget child;
+  const _TabFade({required this.index, required this.child});
+ 
+  @override
+  State<_TabFade> createState() => _TabFadeState();
+}
+ 
+class _TabFadeState extends State<_TabFade>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+    value: 1,
+  );
+ 
+  @override
+  void didUpdateWidget(covariant _TabFade old) {
+    super.didUpdateWidget(old);
+    if (old.index != widget.index) _c.forward(from: 0);
+  }
+ 
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+ 
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      child: widget.child,
+      builder: (_, child) {
+        final v = Curves.easeOut.transform(_c.value);
+        return Opacity(
+          opacity: 0.35 + 0.65 * v,
+          child: Transform.translate(offset: Offset(0, 12 * (1 - v)), child: child),
+        );
+      },
+    );
+  }
+}
+ 

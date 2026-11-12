@@ -492,7 +492,11 @@ class _HistoryEntry extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.medium),
             child: Row(
               children: [
-                LeafThumb(size: 58, spot: item.healthy ? null : color),
+                LeafThumb(
+                  size: 58,
+                  spot: item.healthy ? null : color,
+                  imagePath: item.result.imagePath,
+                ),
                 const SizedBox(width: AppSpacing.medium),
                 Expanded(
                   child: Column(

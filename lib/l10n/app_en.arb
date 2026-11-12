@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appName": "GrapeCare AI",
+  "appName": "VineGuard",
   "dashboard": "Dashboard",
   "history": "History",
   "scanLeaf": "Scan Leaf",
@@ -64,5 +64,17 @@
   "aboutApp": "About the app",
   "appVersion": "Version",
   "projectTitle": "Explainable AI based grape leaf disease detection and classification using deep learning",
-  "privacyNote": "Scan results are stored only on this device."
+  "privacyNote": "Scan results are stored only on this device.",
+  "photoCheckTitle": "Check your photo",
+  "photoTooDark": "The photo looks dark. Move to better light.",
+  "photoTooBright": "The photo looks overexposed. Avoid direct glare.",
+  "photoNoLeaf": "A grape leaf may not be clearly visible. Fill the frame with one leaf.",
+  "useAnyway": "Use anyway",
+  "retake": "Retake",
+  "pickFailed": "Could not open the photo. Please try again.",
+  "cameraNotAvailable": "The camera is not available here. Choose a photo from the gallery.",
+  "noPhotoYet": "No photo yet",
+  "takeOrChoose": "Take a photo or choose one from your gallery",
+  "demoPhotoNote": "Your photo is attached, but the demo classifier does not read it. The diagnosis shown is sample output.",
+  "heatmapNeedsModel": "The heatmap appears once the trained model is connected"
 }

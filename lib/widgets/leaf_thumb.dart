@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
  
+import 'scan_image.dart';
+ 
 /// Placeholder leaf thumbnail until real scan photos are stored.
 /// [spot] = colour of the disease spots (null for a healthy leaf).
+/// When [imagePath] is set the real photo is shown instead of the drawing.
 class LeafThumb extends StatelessWidget {
   final double size;
   final Color? spot;
   final double radius;
+  final String? imagePath;
  
-  const LeafThumb({super.key, this.size = 56, this.spot, this.radius = 14});
+  const LeafThumb({
+    super.key,
+    this.size = 56,
+    this.spot,
+    this.radius = 14,
+    this.imagePath,
+  });
  
   @override
   Widget build(BuildContext context) {
@@ -16,7 +26,12 @@ class LeafThumb extends StatelessWidget {
       child: SizedBox(
         width: size,
         height: size,
-        child: CustomPaint(painter: _LeafThumbPainter(spot: spot)),
+        child: imagePath != null
+            ? ScanImage(
+                path: imagePath!,
+                fallback: CustomPaint(painter: _LeafThumbPainter(spot: spot)),
+              )
+            : CustomPaint(painter: _LeafThumbPainter(spot: spot)),
       ),
     );
   }
@@ -74,4 +89,3 @@ class _LeafThumbPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _LeafThumbPainter old) => old.spot != spot;
 }
- 

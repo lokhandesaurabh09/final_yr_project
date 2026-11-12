@@ -10,7 +10,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'GrapeCare AI';
+  String get appName => 'VineGuard';
 
   @override
   String get dashboard => 'Dashboard';
@@ -207,4 +207,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyNote => 'Scan results are stored only on this device.';
+
+  @override
+  String get photoCheckTitle => 'Check your photo';
+
+  @override
+  String get photoTooDark => 'The photo looks dark. Move to better light.';
+
+  @override
+  String get photoTooBright =>
+      'The photo looks overexposed. Avoid direct glare.';
+
+  @override
+  String get photoNoLeaf =>
+      'A grape leaf may not be clearly visible. Fill the frame with one leaf.';
+
+  @override
+  String get useAnyway => 'Use anyway';
+
+  @override
+  String get retake => 'Retake';
+
+  @override
+  String get pickFailed => 'Could not open the photo. Please try again.';
+
+  @override
+  String get cameraNotAvailable =>
+      'The camera is not available here. Choose a photo from the gallery.';
+
+  @override
+  String get noPhotoYet => 'No photo yet';
+
+  @override
+  String get takeOrChoose => 'Take a photo or choose one from your gallery';
+
+  @override
+  String get demoPhotoNote =>
+      'Your photo is attached, but the demo classifier does not read it. The diagnosis shown is sample output.';
+
+  @override
+  String get heatmapNeedsModel =>
+      'The heatmap appears once the trained model is connected';
 }

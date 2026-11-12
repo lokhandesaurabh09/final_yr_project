@@ -28,10 +28,10 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _c = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 2800),
     )..forward();
  
-    _navigationTimer = Timer(const Duration(milliseconds: 2800), () {
+    _navigationTimer = Timer(const Duration(milliseconds: 3400), () {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -54,15 +54,17 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final logoScale = Tween<double>(begin: 0.7, end: 1).animate(
-      _interval(0.0, 0.55, Curves.easeOutBack),
+      _interval(0.0, 0.2, Curves.easeOutBack),
     );
-    final logoFade = _interval(0.0, 0.4);
-    final textFade = _interval(0.35, 0.75);
+    final logoFade = _interval(0.0, 0.12);
+    final logoBuild = _interval(0.05, 0.55, Curves.easeInOut);
+    final logoShine = _interval(0.58, 0.82, Curves.easeInOut);
+    final textFade = _interval(0.42, 0.72);
     final textSlide = Tween<Offset>(
       begin: const Offset(0, 0.25),
       end: Offset.zero,
-    ).animate(_interval(0.35, 0.75));
-    final loaderFade = _interval(0.65, 1.0);
+    ).animate(_interval(0.42, 0.72));
+    final loaderFade = _interval(0.7, 1.0);
  
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
@@ -130,7 +132,12 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                               ],
                             ),
-                            child: const GrapeLogo(size: 84, onDark: true),
+                            child: GrapeLogo(
+                              size: 92,
+                              onDark: true,
+                              animation: logoBuild,
+                              shine: logoShine,
+                            ),
                           ),
                         ),
                       ),
@@ -142,7 +149,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Column(
                             children: [
                               const Text(
-                                'GrapeCare AI',
+                                'VineGuard',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 34,

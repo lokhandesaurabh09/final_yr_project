@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+ 
 import '../l10n/app_localizations.dart';
 import '../providers/app_locale.dart';
 import '../providers/scan_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cards/app_card.dart';
 import '../widgets/grape_logo.dart';
-
+ 
 /// Keep in sync with `version:` in pubspec.yaml.
 const String _appVersion = '1.0.0';
-
+ 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
+ 
   Future<void> _confirmThen(
     BuildContext context,
     String message,
@@ -45,14 +45,14 @@ class SettingsScreen extends StatelessWidget {
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(l10n.done)));
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scans = context.watch<ScanProvider>();
     final controller = context.read<AppLocaleController>();
     final isEnglish = Localizations.localeOf(context).languageCode == 'en';
-
+ 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -171,7 +171,7 @@ class SettingsScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'GrapeCare AI',
+                                  'VineGuard',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
@@ -231,13 +231,13 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
-
+ 
 // ---------------------------------------------------------------------------
-
+ 
 class _SectionLabel extends StatelessWidget {
   final String text;
   const _SectionLabel(this.text);
-
+ 
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -254,12 +254,12 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
-
+ 
 /// Rounded card that stacks rows with hairline dividers.
 class _Group extends StatelessWidget {
   final List<Widget> children;
   const _Group({required this.children});
-
+ 
   @override
   Widget build(BuildContext context) {
     final rows = <Widget>[];
@@ -281,7 +281,7 @@ class _Group extends StatelessWidget {
     );
   }
 }
-
+ 
 class _Row extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -289,7 +289,7 @@ class _Row extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool danger;
-
+ 
   const _Row({
     required this.icon,
     required this.title,
@@ -298,7 +298,7 @@ class _Row extends StatelessWidget {
     this.onTap,
     this.danger = false,
   });
-
+ 
   @override
   Widget build(BuildContext context) {
     final color = danger ? AppColors.danger : AppColors.primary;
@@ -360,11 +360,11 @@ class _Row extends StatelessWidget {
     );
   }
 }
-
+ 
 class _ValueText extends StatelessWidget {
   final String text;
   const _ValueText(this.text);
-
+ 
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -377,10 +377,10 @@ class _ValueText extends StatelessWidget {
     );
   }
 }
-
+ 
 class _DemoChip extends StatelessWidget {
   const _DemoChip();
-
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -401,11 +401,11 @@ class _DemoChip extends StatelessWidget {
     );
   }
 }
-
+ 
 class _NoteCard extends StatelessWidget {
   final String text;
   const _NoteCard({required this.text});
-
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -436,12 +436,12 @@ class _NoteCard extends StatelessWidget {
     );
   }
 }
-
+ 
 class _LangSegment extends StatelessWidget {
   final bool isEnglish;
   final ValueChanged<bool> onChanged; // true = English
   const _LangSegment({required this.isEnglish, required this.onChanged});
-
+ 
   @override
   Widget build(BuildContext context) {
     Widget pill(String label, bool en) {
@@ -472,7 +472,7 @@ class _LangSegment extends StatelessWidget {
         ),
       );
     }
-
+ 
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
