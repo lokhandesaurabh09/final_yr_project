@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
- 
+
 import 'l10n/app_localizations.dart';
 import 'providers/app_locale.dart';
 import 'providers/scan_provider.dart';
+import 'providers/weather_provider.dart';
 import 'repositories/scan_repository.dart';
 import 'screens/splash_screen.dart';
 import 'services/disease_classifier.dart';
+import 'services/weather_service.dart';
 import 'theme/app_theme.dart';
- 
+
 /// Add sample records on first run so the demo looks populated.
 /// Set to false once real scans should be the only content.
 const bool kSeedDemoData = true;
- 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
@@ -29,17 +31,17 @@ Future<void> main() async {
     initialLocale: Locale(savedLanguage ?? 'en'),
   ));
 }
- 
+
 class VineGuardApp extends StatelessWidget {
   final SharedPreferences? prefs;
   final Locale initialLocale;
- 
+
   const VineGuardApp({
     super.key,
     this.prefs,
     this.initialLocale = const Locale('en'),
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -59,11 +61,17 @@ class VineGuardApp extends StatelessWidget {
             prefs: prefs,
           )..load(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => WeatherProvider(
+            service: OpenMeteoWeatherService(),
+            prefs: prefs,
+          )..load(),
+        ),
       ],
       child: Builder(
         builder: (context) {
           final localeController = context.watch<AppLocaleController>();
- 
+
           return MaterialApp(
             title: 'VineGuard',
             debugShowCheckedModeBanner: false,
@@ -74,13 +82,13 @@ class VineGuardApp extends StatelessWidget {
               if (locale == null) {
                 return supportedLocales.first;
               }
- 
+
               for (final supportedLocale in supportedLocales) {
                 if (supportedLocale.languageCode == locale.languageCode) {
                   return supportedLocale;
                 }
               }
- 
+
               return supportedLocales.first;
             },
             localizationsDelegates: AppLocalizations.localizationsDelegates,

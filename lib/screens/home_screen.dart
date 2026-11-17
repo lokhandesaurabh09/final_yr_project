@@ -1,13 +1,16 @@
 import 'dart:math' as math;
- 
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
- 
+
 import '../data/disease_catalog.dart';
 import '../l10n/app_localizations.dart';
 import '../models/scan_result.dart';
 import '../providers/app_locale.dart';
+import '../models/weather_snapshot.dart';
 import '../providers/scan_provider.dart';
+import '../providers/weather_provider.dart';
+import '../services/disease_risk.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/cards/app_card.dart';
@@ -21,43 +24,42 @@ import 'history_screen.dart';
 import 'result_screen.dart';
 import 'scan_screen.dart';
 import 'settings_screen.dart';
- 
+
 // TODO(l10n): a few English-only strings below (weather text, advisory).
-// TODO(weather): replace the demo weather / risk numbers with real data.
- 
+
 void _openScan(BuildContext context) {
   Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => const ScanScreen()),
   );
 }
- 
+
 void _openResult(BuildContext context, ScanResult r) {
   Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => ResultScreen(result: r)),
   );
 }
- 
+
 String _sevText(AppLocalizations l, DiseaseSeverity s) => switch (s) {
       DiseaseSeverity.healthy => l.noDisease,
       DiseaseSeverity.mild => l.mild,
       DiseaseSeverity.moderate => l.moderate,
       DiseaseSeverity.severe => l.severe,
     };
- 
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
- 
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
- 
+
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
- 
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
- 
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _TabFade(
@@ -157,20 +159,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
- 
+
 class _NavBtn extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback onTap;
- 
+
   const _NavBtn({
     required this.icon,
     required this.label,
     required this.active,
     required this.onTap,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.primary : AppColors.textTertiary;
@@ -210,35 +212,40 @@ class _NavBtn extends StatelessWidget {
     );
   }
 }
- 
- 
+
+
 // ===========================================================================
 // Dashboard
 // ===========================================================================
- 
+
 class _Dashboard extends StatelessWidget {
   final VoidCallback onViewAll;
   const _Dashboard({required this.onViewAll});
- 
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scans = context.watch<ScanProvider>();
+    final weather = context.watch<WeatherProvider>();
     final lang = Localizations.localeOf(context).languageCode;
     final gutter = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 32.0;
- 
+
     // Most recent scan that needs action.
     final attention = scans.scans
         .where((s) =>
             s.severity == DiseaseSeverity.severe ||
             s.severity == DiseaseSeverity.moderate)
         .firstOrNull;
- 
+
     const gap = SizedBox(height: 18);
- 
+
     return SafeArea(
       bottom: false,
-      child: SingleChildScrollView(
+      child: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () => context.read<WeatherProvider>().load(force: true),
+        child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
@@ -311,7 +318,7 @@ class _Dashboard extends StatelessWidget {
                   gap,
                   _Reveal(
                     index: 4,
-                    child: _ConditionsCard(l10n: l10n, lang: lang),
+                    child: _ConditionsCard(l10n: l10n, lang: lang, weather: weather),
                   ),
                   const SizedBox(height: 24),
                   _Reveal(
@@ -336,16 +343,17 @@ class _Dashboard extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
 }
- 
+
 /// Fade + slide-up entrance, slightly later for each [index].
 class _Reveal extends StatelessWidget {
   final int index;
   final Widget child;
   const _Reveal({required this.index, required this.child});
- 
+
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
@@ -360,11 +368,11 @@ class _Reveal extends StatelessWidget {
     );
   }
 }
- 
+
 class _Skeleton extends StatelessWidget {
   final double height;
   const _Skeleton({required this.height});
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -376,11 +384,11 @@ class _Skeleton extends StatelessWidget {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Header
 // ---------------------------------------------------------------------------
- 
+
 class _Header extends StatelessWidget {
   final String greeting;
   final bool hasAlert;
@@ -390,7 +398,7 @@ class _Header extends StatelessWidget {
     required this.hasAlert,
     required this.onBell,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -469,16 +477,16 @@ class _Header extends StatelessWidget {
     );
   }
 }
- 
+
 class _LanguageToggle extends StatelessWidget {
   const _LanguageToggle();
- 
+
   @override
   Widget build(BuildContext context) {
     final controller = context.read<AppLocaleController>();
     final current = Localizations.localeOf(context);
     final isEn = current.languageCode == 'en';
- 
+
     return Semantics(
       button: true,
       label: 'Change language',
@@ -513,11 +521,11 @@ class _LanguageToggle extends StatelessWidget {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Hero
 // ---------------------------------------------------------------------------
- 
+
 class _HeroCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -526,7 +534,7 @@ class _HeroCard extends StatelessWidget {
   final bool showDemo;
   final VoidCallback onScan;
   final VoidCallback onGallery;
- 
+
   const _HeroCard({
     required this.title,
     required this.subtitle,
@@ -536,7 +544,7 @@ class _HeroCard extends StatelessWidget {
     required this.onScan,
     required this.onGallery,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -686,7 +694,7 @@ class _HeroCard extends StatelessWidget {
     );
   }
 }
- 
+
 class _HeroButton extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -698,7 +706,7 @@ class _HeroButton extends StatelessWidget {
     required this.filled,
     required this.onTap,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final fg = filled ? AppColors.primaryDark : Colors.white;
@@ -742,11 +750,11 @@ class _HeroButton extends StatelessWidget {
     ));
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Vineyard health (donut + legend)
 // ---------------------------------------------------------------------------
- 
+
 class _HealthCard extends StatelessWidget {
   final String title;
   final String healthyLabel;
@@ -755,7 +763,7 @@ class _HealthCard extends StatelessWidget {
   final int total;
   final int healthy;
   final int diseased;
- 
+
   const _HealthCard({
     required this.title,
     required this.healthyLabel,
@@ -765,12 +773,12 @@ class _HealthCard extends StatelessWidget {
     required this.healthy,
     required this.diseased,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final hf = total == 0 ? 0.0 : healthy / total;
     final df = total == 0 ? 0.0 : diseased / total;
- 
+
     return AppCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -860,7 +868,7 @@ class _HealthCard extends StatelessWidget {
     );
   }
 }
- 
+
 class _LegendRow extends StatelessWidget {
   final Color color;
   final String label;
@@ -870,7 +878,7 @@ class _LegendRow extends StatelessWidget {
     required this.label,
     required this.value,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -904,18 +912,18 @@ class _LegendRow extends StatelessWidget {
     );
   }
 }
- 
+
 class _DonutPainter extends CustomPainter {
   final double healthyFraction;
   final double diseasedFraction;
   final double progress;
- 
+
   const _DonutPainter({
     required this.healthyFraction,
     required this.diseasedFraction,
     required this.progress,
   });
- 
+
   @override
   void paint(Canvas canvas, Size size) {
     const stroke = 14.0;
@@ -926,7 +934,7 @@ class _DonutPainter extends CustomPainter {
     final base = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke;
- 
+
     canvas.drawArc(
       rect,
       0,
@@ -934,17 +942,17 @@ class _DonutPainter extends CustomPainter {
       false,
       base..color = AppColors.primaryMuted,
     );
- 
+
     if (healthyFraction + diseasedFraction == 0) return;
- 
+
     final both = healthyFraction > 0 && diseasedFraction > 0;
     final gap = both ? 0.10 : 0.0;
     const full = math.pi * 2;
     final cap = both ? StrokeCap.butt : StrokeCap.round;
- 
+
     final hSweep = full * healthyFraction * progress;
     final dSweep = full * diseasedFraction * progress;
- 
+
     if (healthyFraction > 0) {
       canvas.drawArc(
         rect,
@@ -968,25 +976,25 @@ class _DonutPainter extends CustomPainter {
       );
     }
   }
- 
+
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
       old.healthyFraction != healthyFraction ||
       old.diseasedFraction != diseasedFraction ||
       old.progress != progress;
 }
- 
+
 // ---------------------------------------------------------------------------
 // Needs attention
 // ---------------------------------------------------------------------------
- 
+
 class _AttentionCard extends StatelessWidget {
   final String title;
   final String name;
   final String detail;
   final bool severe;
   final VoidCallback onTap;
- 
+
   const _AttentionCard({
     required this.title,
     required this.name,
@@ -994,12 +1002,12 @@ class _AttentionCard extends StatelessWidget {
     required this.severe,
     required this.onTap,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final color = severe ? AppColors.danger : AppColors.warning;
     final bg = severe ? AppColors.dangerMuted : AppColors.warningMuted;
- 
+
     return Material(
       color: bg,
       borderRadius: BorderRadius.circular(AppRadii.large),
@@ -1069,26 +1077,95 @@ class _AttentionCard extends StatelessWidget {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Conditions: weather + disease risk (demo values)
 // ---------------------------------------------------------------------------
- 
+
 class _ConditionsCard extends StatelessWidget {
   final AppLocalizations l10n;
   final String lang;
-  const _ConditionsCard({required this.l10n, required this.lang});
- 
-  // Demo values. Replace with live weather + rule-based risk later.
-  static const _risks = [
-    ('powdery_mildew', 72),
-    ('black_rot', 45),
-    ('downy_mildew', 28),
-    ('leaf_blight', 18),
-  ];
- 
+  final WeatherProvider weather;
+  const _ConditionsCard({
+    required this.l10n,
+    required this.lang,
+    required this.weather,
+  });
+
+  static IconData _icon(WeatherKind k) => switch (k) {
+        WeatherKind.clear => Icons.wb_sunny_rounded,
+        WeatherKind.partlyCloudy => Icons.wb_cloudy_rounded,
+        WeatherKind.cloudy => Icons.cloud_rounded,
+        WeatherKind.fog => Icons.blur_on_rounded,
+        WeatherKind.drizzle => Icons.grain_rounded,
+        WeatherKind.rain => Icons.water_drop_rounded,
+        WeatherKind.storm => Icons.thunderstorm_rounded,
+      };
+
+  static String _text(AppLocalizations l, WeatherKind k) => switch (k) {
+        WeatherKind.clear => l.wxClear,
+        WeatherKind.partlyCloudy => l.wxPartlyCloudy,
+        WeatherKind.cloudy => l.wxCloudy,
+        WeatherKind.fog => l.wxFog,
+        WeatherKind.drizzle => l.wxDrizzle,
+        WeatherKind.rain => l.wxRain,
+        WeatherKind.storm => l.wxStorm,
+      };
+
   @override
   Widget build(BuildContext context) {
+    final w = weather.data;
+
+    if (w == null) {
+      if (weather.status == WeatherStatus.loading) {
+        return const _Skeleton(height: 360);
+      }
+      return AppCard(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceElevated,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.cloud_off_rounded,
+                  color: AppColors.textSecondary),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                l10n.weatherUnavailable,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.4,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => weather.load(force: true),
+              child: Text(l10n.retry),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final ranked = DiseaseRisk.ranked(weather.risks);
+    final top = ranked.first;
+    final topName = DiseaseCatalog.byId(top.key).name(lang);
+    final advice = top.value >= 60
+        ? l10n.adviceHigh(topName)
+        : top.value >= 30
+            ? l10n.adviceModerate(topName)
+            : l10n.adviceLow;
+    final adviceColor = top.value >= 60
+        ? AppColors.danger
+        : (top.value >= 30 ? AppColors.warning : AppColors.primary);
+
     return AppCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1103,8 +1180,7 @@ class _ConditionsCard extends StatelessWidget {
                   color: AppColors.amber.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(11),
                 ),
-                child: const Icon(Icons.wb_sunny_rounded,
-                    size: 19, color: AppColors.warning),
+                child: Icon(_icon(w.kind), size: 19, color: AppColors.warning),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1121,9 +1197,9 @@ class _ConditionsCard extends StatelessWidget {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const Text(
-                      'Nashik, MH',
-                      style: TextStyle(
+                    Text(
+                      weather.placeName,
+                      style: const TextStyle(
                           fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
@@ -1133,17 +1209,35 @@ class _ConditionsCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.warningMuted,
+                  color: weather.isStale
+                      ? AppColors.warningMuted
+                      : AppColors.successMuted,
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: const Text(
-                  'DEMO',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.7,
-                    color: AppColors.warning,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      weather.isStale ? Icons.cloud_off_rounded : Icons.circle,
+                      size: weather.isStale ? 12 : 7,
+                      color: weather.isStale
+                          ? AppColors.warning
+                          : AppColors.success,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      weather.isStale
+                          ? l10n.usingSavedData
+                          : l10n.updatedAt(timeLabel(w.fetchedAt)),
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: weather.isStale
+                            ? AppColors.warning
+                            : AppColors.success,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1152,9 +1246,9 @@ class _ConditionsCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
-                '28',
-                style: TextStyle(
+              Text(
+                '${w.temperatureC.round()}',
+                style: const TextStyle(
                   fontSize: 56,
                   height: 1,
                   fontWeight: FontWeight.w800,
@@ -1174,24 +1268,16 @@ class _ConditionsCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'Partly cloudy',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
+              Flexible(
+                child: Text(
+                  _text(l10n, w.kind),
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
                   ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Good for field work',
-                    style: TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -1201,7 +1287,7 @@ class _ConditionsCard extends StatelessWidget {
               Expanded(
                 child: _MiniStat(
                   icon: Icons.water_drop_rounded,
-                  value: '72%',
+                  value: '${w.humidity.round()}%',
                   label: l10n.humidity,
                 ),
               ),
@@ -1209,7 +1295,7 @@ class _ConditionsCard extends StatelessWidget {
               Expanded(
                 child: _MiniStat(
                   icon: Icons.air_rounded,
-                  value: '12 km/h',
+                  value: '${w.windKmh.round()} km/h',
                   label: l10n.wind,
                 ),
               ),
@@ -1217,7 +1303,7 @@ class _ConditionsCard extends StatelessWidget {
               Expanded(
                 child: _MiniStat(
                   icon: Icons.thermostat_rounded,
-                  value: '31°C',
+                  value: '${w.apparentC.round()}°C',
                   label: l10n.feelsLike,
                 ),
               ),
@@ -1235,46 +1321,61 @@ class _ConditionsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          for (var i = 0; i < _risks.length; i += 2) ...[
+          for (var i = 0; i < ranked.length; i += 2) ...[
             Row(
               children: [
-                Expanded(child: _RiskRow(id: _risks[i].$1, pct: _risks[i].$2, lang: lang)),
-                const SizedBox(width: 18),
                 Expanded(
                   child: _RiskRow(
-                      id: _risks[i + 1].$1, pct: _risks[i + 1].$2, lang: lang),
+                      id: ranked[i].key, pct: ranked[i].value, lang: lang),
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: i + 1 < ranked.length
+                      ? _RiskRow(
+                          id: ranked[i + 1].key,
+                          pct: ranked[i + 1].value,
+                          lang: lang)
+                      : const SizedBox.shrink(),
                 ),
               ],
             ),
-            if (i + 2 < _risks.length) const SizedBox(height: 14),
+            if (i + 2 < ranked.length) const SizedBox(height: 14),
           ],
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primaryExtraMuted,
+              color: adviceColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(AppRadii.control),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: adviceColor.withValues(alpha: 0.25)),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(Icons.lightbulb_outline_rounded,
-                    size: 18, color: AppColors.primary),
-                SizedBox(width: 10),
+                    size: 18, color: adviceColor),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Demo advice: high humidity favours powdery mildew. '
-                    'Inspect your vines today. Values are illustrative, not '
-                    'live weather.',
-                    style: TextStyle(
-                      fontSize: 12.5,
+                    advice,
+                    style: const TextStyle(
+                      fontSize: 13,
                       height: 1.45,
-                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.weatherEstimateNote,
+            style: const TextStyle(
+              fontSize: 11.5,
+              height: 1.4,
+              color: AppColors.textTertiary,
             ),
           ),
         ],
@@ -1282,7 +1383,7 @@ class _ConditionsCard extends StatelessWidget {
     );
   }
 }
- 
+
 class _MiniStat extends StatelessWidget {
   final IconData icon;
   final String value;
@@ -1292,7 +1393,7 @@ class _MiniStat extends StatelessWidget {
     required this.value,
     required this.label,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1331,13 +1432,13 @@ class _MiniStat extends StatelessWidget {
     );
   }
 }
- 
+
 class _RiskRow extends StatelessWidget {
   final String id;
   final int pct;
   final String lang;
   const _RiskRow({required this.id, required this.pct, required this.lang});
- 
+
   @override
   Widget build(BuildContext context) {
     final color = SeverityStyle.forPercent(pct.toDouble());
@@ -1386,11 +1487,11 @@ class _RiskRow extends StatelessWidget {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Recent scans
 // ---------------------------------------------------------------------------
- 
+
 class _RecentList extends StatelessWidget {
   final ScanProvider scans;
   final AppLocalizations l10n;
@@ -1400,7 +1501,7 @@ class _RecentList extends StatelessWidget {
     required this.l10n,
     required this.lang,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     if (!scans.loaded) {
@@ -1453,7 +1554,7 @@ class _RecentList extends StatelessWidget {
     );
   }
 }
- 
+
 class _ScanTile extends StatelessWidget {
   final ScanResult result;
   final AppLocalizations l10n;
@@ -1463,12 +1564,12 @@ class _ScanTile extends StatelessWidget {
     required this.l10n,
     required this.lang,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final ui = toUiSeverity(result.severity);
     final color = ui.color;
- 
+
     return AppCard(
       padding: const EdgeInsets.all(12),
       onTap: () => _openResult(context, result),
@@ -1544,18 +1645,18 @@ class _ScanTile extends StatelessWidget {
     );
   }
 }
- 
- 
+
+
 /// Soft fade + slide whenever the selected tab changes.
 class _TabFade extends StatefulWidget {
   final int index;
   final Widget child;
   const _TabFade({required this.index, required this.child});
- 
+
   @override
   State<_TabFade> createState() => _TabFadeState();
 }
- 
+
 class _TabFadeState extends State<_TabFade>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
@@ -1563,19 +1664,19 @@ class _TabFadeState extends State<_TabFade>
     duration: const Duration(milliseconds: 280),
     value: 1,
   );
- 
+
   @override
   void didUpdateWidget(covariant _TabFade old) {
     super.didUpdateWidget(old);
     if (old.index != widget.index) _c.forward(from: 0);
   }
- 
+
   @override
   void dispose() {
     _c.dispose();
     super.dispose();
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -1591,4 +1692,3 @@ class _TabFadeState extends State<_TabFade>
     );
   }
 }
- 

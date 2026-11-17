@@ -559,6 +559,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The heatmap appears once the trained model is connected'**
   String get heatmapNeedsModel;
+
+  /// No description provided for @weatherUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather is unavailable. Check your internet connection.'**
+  String get weatherUnavailable;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @updatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {time}'**
+  String updatedAt(String time);
+
+  /// No description provided for @usingSavedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing saved data'**
+  String get usingSavedData;
+
+  /// No description provided for @adviceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High risk of {disease} today. Inspect your vines.'**
+  String adviceHigh(String disease);
+
+  /// No description provided for @adviceModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate risk of {disease}. Keep checking your vines.'**
+  String adviceModerate(String disease);
+
+  /// No description provided for @adviceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditions look low-risk for disease today.'**
+  String get adviceLow;
+
+  /// No description provided for @weatherEstimateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Risk is estimated from the weather, not from your scans.'**
+  String get weatherEstimateNote;
+
+  /// No description provided for @wxClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear sky'**
+  String get wxClear;
+
+  /// No description provided for @wxPartlyCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly cloudy'**
+  String get wxPartlyCloudy;
+
+  /// No description provided for @wxCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloudy'**
+  String get wxCloudy;
+
+  /// No description provided for @wxFog.
+  ///
+  /// In en, this message translates to:
+  /// **'Fog'**
+  String get wxFog;
+
+  /// No description provided for @wxDrizzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drizzle'**
+  String get wxDrizzle;
+
+  /// No description provided for @wxRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get wxRain;
+
+  /// No description provided for @wxStorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Thunderstorm'**
+  String get wxStorm;
 }
 
 class _AppLocalizationsDelegate

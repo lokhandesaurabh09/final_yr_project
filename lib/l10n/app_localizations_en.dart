@@ -248,4 +248,57 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get heatmapNeedsModel =>
       'The heatmap appears once the trained model is connected';
+
+  @override
+  String get weatherUnavailable =>
+      'Weather is unavailable. Check your internet connection.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String updatedAt(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String get usingSavedData => 'Showing saved data';
+
+  @override
+  String adviceHigh(String disease) {
+    return 'High risk of $disease today. Inspect your vines.';
+  }
+
+  @override
+  String adviceModerate(String disease) {
+    return 'Moderate risk of $disease. Keep checking your vines.';
+  }
+
+  @override
+  String get adviceLow => 'Conditions look low-risk for disease today.';
+
+  @override
+  String get weatherEstimateNote =>
+      'Risk is estimated from the weather, not from your scans.';
+
+  @override
+  String get wxClear => 'Clear sky';
+
+  @override
+  String get wxPartlyCloudy => 'Partly cloudy';
+
+  @override
+  String get wxCloudy => 'Cloudy';
+
+  @override
+  String get wxFog => 'Fog';
+
+  @override
+  String get wxDrizzle => 'Drizzle';
+
+  @override
+  String get wxRain => 'Rain';
+
+  @override
+  String get wxStorm => 'Thunderstorm';
 }

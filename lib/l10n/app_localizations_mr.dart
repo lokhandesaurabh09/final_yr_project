@@ -246,4 +246,56 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get heatmapNeedsModel => 'प्रशिक्षित मॉडेल जोडल्यावर हीटमॅप दिसेल';
+
+  @override
+  String get weatherUnavailable => 'हवामान उपलब्ध नाही. इंटरनेट कनेक्शन तपासा.';
+
+  @override
+  String get retry => 'पुन्हा प्रयत्न करा';
+
+  @override
+  String updatedAt(String time) {
+    return 'अपडेट: $time';
+  }
+
+  @override
+  String get usingSavedData => 'जतन केलेला डेटा दाखवत आहे';
+
+  @override
+  String adviceHigh(String disease) {
+    return 'आज $disease चा धोका जास्त आहे. तुमच्या वेली तपासा.';
+  }
+
+  @override
+  String adviceModerate(String disease) {
+    return '$disease चा मध्यम धोका आहे. वेली तपासत रहा.';
+  }
+
+  @override
+  String get adviceLow => 'आज रोगाचा धोका कमी दिसत आहे.';
+
+  @override
+  String get weatherEstimateNote =>
+      'धोका हवामानावरून अंदाजे काढला आहे, तुमच्या स्कॅनवरून नाही.';
+
+  @override
+  String get wxClear => 'स्वच्छ आकाश';
+
+  @override
+  String get wxPartlyCloudy => 'अंशतः ढगाळ';
+
+  @override
+  String get wxCloudy => 'ढगाळ';
+
+  @override
+  String get wxFog => 'धुके';
+
+  @override
+  String get wxDrizzle => 'रिमझिम पाऊस';
+
+  @override
+  String get wxRain => 'पाऊस';
+
+  @override
+  String get wxStorm => 'वादळी पाऊस';
 }

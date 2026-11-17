@@ -76,5 +76,41 @@
   "noPhotoYet": "No photo yet",
   "takeOrChoose": "Take a photo or choose one from your gallery",
   "demoPhotoNote": "Your photo is attached, but the demo classifier does not read it. The diagnosis shown is sample output.",
-  "heatmapNeedsModel": "The heatmap appears once the trained model is connected"
+  "heatmapNeedsModel": "The heatmap appears once the trained model is connected",
+  "weatherUnavailable": "Weather is unavailable. Check your internet connection.",
+  "retry": "Retry",
+  "updatedAt": "Updated {time}",
+  "@updatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "usingSavedData": "Showing saved data",
+  "adviceHigh": "High risk of {disease} today. Inspect your vines.",
+  "@adviceHigh": {
+    "placeholders": {
+      "disease": {
+        "type": "String"
+      }
+    }
+  },
+  "adviceModerate": "Moderate risk of {disease}. Keep checking your vines.",
+  "@adviceModerate": {
+    "placeholders": {
+      "disease": {
+        "type": "String"
+      }
+    }
+  },
+  "adviceLow": "Conditions look low-risk for disease today.",
+  "weatherEstimateNote": "Risk is estimated from the weather, not from your scans.",
+  "wxClear": "Clear sky",
+  "wxPartlyCloudy": "Partly cloudy",
+  "wxCloudy": "Cloudy",
+  "wxFog": "Fog",
+  "wxDrizzle": "Drizzle",
+  "wxRain": "Rain",
+  "wxStorm": "Thunderstorm"
 }
