@@ -1,19 +1,19 @@
 import 'dart:convert';
- 
+
 enum DiseaseSeverity { healthy, mild, moderate, severe }
- 
+
 class Prediction {
   final String diseaseId;
   final double score; // 0..1
- 
+
   const Prediction(this.diseaseId, this.score);
- 
+
   Map<String, dynamic> toJson() => {'id': diseaseId, 'score': score};
- 
+
   factory Prediction.fromJson(Map<String, dynamic> j) =>
       Prediction(j['id'] as String, (j['score'] as num).toDouble());
 }
- 
+
 /// One classification of one leaf image.
 class ScanResult {
   final int? id; // null until saved to the database
@@ -23,10 +23,10 @@ class ScanResult {
   final List<Prediction> topPredictions;
   final DateTime createdAt;
   final String? imagePath;
- 
+
   /// true when produced by the mock classifier or the demo seed data.
   final bool isSample;
- 
+
   const ScanResult({
     this.id,
     required this.diseaseId,
@@ -37,9 +37,9 @@ class ScanResult {
     this.imagePath,
     this.isSample = false,
   });
- 
+
   bool get isHealthy => severity == DiseaseSeverity.healthy;
- 
+
   ScanResult copyWith({int? id}) => ScanResult(
         id: id ?? this.id,
         diseaseId: diseaseId,
@@ -50,7 +50,7 @@ class ScanResult {
         imagePath: imagePath,
         isSample: isSample,
       );
- 
+
   Map<String, Object?> toMap() => {
         if (id != null) 'id': id,
         'disease_id': diseaseId,
@@ -61,7 +61,7 @@ class ScanResult {
         'image_path': imagePath,
         'is_sample': isSample ? 1 : 0,
       };
- 
+
   factory ScanResult.fromMap(Map<String, Object?> m) => ScanResult(
         id: m['id'] as int?,
         diseaseId: m['disease_id'] as String,
@@ -75,4 +75,3 @@ class ScanResult {
         isSample: (m['is_sample'] as int? ?? 0) == 1,
       );
 }
- 

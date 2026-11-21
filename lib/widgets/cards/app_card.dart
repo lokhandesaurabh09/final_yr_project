@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
 
+import '../../theme/app_theme.dart';
+import '../pressable_scale.dart';
 
 /// Standard soft card used across all screens.
+/// When [onTap] is set the card also gives a small press-in animation.
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -21,7 +23,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       decoration: BoxDecoration(
         color: color ?? AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.card),
@@ -37,5 +39,6 @@ class AppCard extends StatelessWidget {
         ),
       ),
     );
+    return onTap == null ? card : PressableScale(scale: 0.985, child: card);
   }
 }

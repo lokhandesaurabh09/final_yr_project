@@ -38,5 +38,171 @@
   "noDisease": "No disease",
   "gallery": "Gallery",
   "flip": "Flip",
-  "selectLanguage": "Select Language"
+  "selectLanguage": "Select Language",
+  "settings": "Settings",
+  "guide": "Guide",
+  "guideSubtitle": "Learn to recognise common grape leaf problems",
+  "language": "Language",
+  "theme": "Theme",
+  "themeLight": "Light",
+  "darkModeSoon": "Dark mode is coming soon",
+  "appSettings": "App settings",
+  "modelAndData": "Model & data",
+  "modelName": "Model",
+  "demoModelNote": "Results come from a demo classifier. The trained model is not connected yet.",
+  "savedScans": "Saved scans",
+  "sampleRecords": "Sample records",
+  "removeSamples": "Remove sample records",
+  "addSamples": "Add sample records",
+  "deleteAllScans": "Delete all scans",
+  "removeSamplesWarning": "The sample records will be removed from this device.",
+  "deleteAllWarning": "All saved scans will be removed from this device.",
+  "confirmTitle": "Are you sure?",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "done": "Done",
+  "aboutApp": "About the app",
+  "appVersion": "Version",
+  "projectTitle": "Explainable AI based grape leaf disease detection and classification using deep learning",
+  "privacyNote": "Scan results are stored only on this device.",
+  "photoCheckTitle": "Check your photo",
+  "photoTooDark": "The photo looks dark. Move to better light.",
+  "photoTooBright": "The photo looks overexposed. Avoid direct glare.",
+  "photoNoLeaf": "A grape leaf may not be clearly visible. Fill the frame with one leaf.",
+  "useAnyway": "Use anyway",
+  "retake": "Retake",
+  "pickFailed": "Could not open the photo. Please try again.",
+  "cameraNotAvailable": "The camera is not available here. Choose a photo from the gallery.",
+  "noPhotoYet": "No photo yet",
+  "takeOrChoose": "Take a photo or choose one from your gallery",
+  "demoPhotoNote": "Your photo is attached, but the demo classifier does not read it. The diagnosis shown is sample output.",
+  "heatmapNeedsModel": "The heatmap appears once the trained model is connected",
+  "weatherUnavailable": "Weather is unavailable. Check your internet connection.",
+  "retry": "Retry",
+  "updatedAt": "Updated {time}",
+  "@updatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "usingSavedData": "Showing saved data",
+  "adviceHigh": "High risk of {disease} today. Inspect your vines.",
+  "@adviceHigh": {
+    "placeholders": {
+      "disease": {
+        "type": "String"
+      }
+    }
+  },
+  "adviceModerate": "Moderate risk of {disease}. Keep checking your vines.",
+  "@adviceModerate": {
+    "placeholders": {
+      "disease": {
+        "type": "String"
+      }
+    }
+  },
+  "adviceLow": "Conditions look low-risk for disease today.",
+  "weatherEstimateNote": "Risk is estimated from the weather, not from your scans.",
+  "wxClear": "Clear sky",
+  "wxPartlyCloudy": "Partly cloudy",
+  "wxCloudy": "Cloudy",
+  "wxFog": "Fog",
+  "wxDrizzle": "Drizzle",
+  "wxRain": "Rain",
+  "wxStorm": "Thunderstorm",
+  "all": "All",
+  "overview": "Overview",
+  "noDetectionsYet": "No detections yet",
+  "noDetectionsMessage": "Scan a grape leaf to get started and save your results here.",
+  "noMatchingScans": "No matching scans",
+  "noMatchingHint": "Try a different name or switch the filter to All.",
+  "searchByDisease": "Search by disease name",
+  "clearSearch": "Clear search",
+  "undo": "Undo",
+  "removedItem": "{name} removed",
+  "@removedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "percentHealthy": "{percent}% of scans are healthy",
+  "@percentHealthy": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "noNewAlerts": "No new alerts",
+  "alerts": "Alerts",
+  "changeLanguage": "Change language",
+  "aiLeafScan": "AI LEAF SCAN",
+  "demoBadge": "DEMO",
+  "sampleLabel": "sample",
+  "kmPerHour": "km/h",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "back": "Back",
+  "skip": "Skip",
+  "continueLabel": "Continue",
+  "getStarted": "Get Started",
+  "pageOf": "Page {current} of {total}",
+  "@pageOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onbDetectTag": "DETECT",
+  "onbDetectTitle": "Spot leaf diseases early",
+  "onbDetectBody": "Scan a grape leaf with your camera or pick a photo from your gallery and get a likely diagnosis.",
+  "onbDetectChip1": "Camera or gallery",
+  "onbDetectChip2": "Fast analysis",
+  "onbUnderstandTag": "UNDERSTAND",
+  "onbUnderstandTitle": "See why the AI decided",
+  "onbUnderstandBody": "Explainable heatmaps highlight the parts of the leaf the model focused on, so you can check the result yourself.",
+  "onbUnderstandChip1": "Heatmap overlay",
+  "onbCareTag": "CARE",
+  "onbCareTitle": "Get clear treatment tips",
+  "onbCareBody": "Receive simple, step-by-step guidance for each disease and keep a history of every scan.",
+  "onbCareChip1": "Step-by-step care",
+  "onbCareChip2": "Marathi & English",
+  "result": "Result",
+  "savedToHistory": "Saved to history",
+  "saved": "Saved",
+  "careTips": "Care tips",
+  "treatmentRecommendation": "Treatment recommendation",
+  "aboutThisLeaf": "About this leaf",
+  "symptomsToLookFor": "Symptoms to look for",
+  "demoResultNote": "Demo result from the sample classifier. It is not a real diagnosis, and the heatmap below is a placeholder.",
+  "lowConfidenceNote": "The model is not very sure about this leaf. Retake the photo in good light with the leaf filling the frame.",
+  "whatAiFocusedOn": "What the AI focused on",
+  "original": "Original",
+  "gradCam": "Grad-CAM",
+  "sampleSuffix": "(SAMPLE)",
+  "heatmapExplain": "Warm colours mark the leaf areas that influenced the prediction most. Real Grad-CAM heatmaps will appear here once the trained model is connected.",
+  "topPredictions": "Top predictions",
+  "guidanceDisclaimer": "General guidance only. Confirm products and doses with the label and your local agriculture officer.",
+  "stepPreprocessing": "Preprocessing image",
+  "stepFeatures": "Feature extraction",
+  "stepPredicting": "Predicting disease",
+  "stepExplanation": "Generating explanation",
+  "placeLeafHint": "Place the leaf within the frame and keep it steady",
+  "scanGrapeLeaf": "Scan Grape Leaf",
+  "flashOn": "Flash on",
+  "flashOff": "Flash off",
+  "captureLeaf": "Capture leaf",
+  "analyzingTitle": "Analyzing…",
+  "analyzingHint": "This may take a few seconds. Please keep the leaf steady.",
+  "splashTagline": "Healthy Grapes  |  Better Harvests",
+  "splashFooter": "EXPLAINABLE AI  ·  GRAPE LEAF DISEASE DETECTION"
 }

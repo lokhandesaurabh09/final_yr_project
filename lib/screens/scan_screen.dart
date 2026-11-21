@@ -1,37 +1,45 @@
 import 'dart:math' as math;
 import 'dart:ui';
- 
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
- 
+
+import '../l10n/app_localizations.dart';
 import '../providers/scan_provider.dart';
+import '../services/image_store.dart';
+import '../services/photo_quality.dart';
 import '../theme/app_theme.dart';
 import 'result_screen.dart';
- 
+
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
- 
+
   @override
   State<ScanScreen> createState() => _ScanScreenState();
 }
- 
+
 class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
-  // TODO(l10n): move these strings into the .arb files (en + mr).
-  static const _steps = [
-    'Preprocessing image',
-    'Feature extraction',
-    'Predicting disease',
-    'Generating explanation',
-  ];
- 
+  static const int _stepCount = 4;
+
+  List<String> _stepLabels(AppLocalizations l) => [
+        l.stepPreprocessing,
+        l.stepFeatures,
+        l.stepPredicting,
+        l.stepExplanation,
+      ];
+
   bool _analyzing = false;
   bool _flashOn = false; // visual only until the camera plugin is wired in
   int _step = 0;
- 
+  bool _picking = false;
+  Uint8List? _bytes; // preview of the chosen photo
+  final ImagePicker _picker = ImagePicker();
+
   late final AnimationController _pulse;
   late final AnimationController _scan;
- 
+
   @override
   void initState() {
     super.initState();
@@ -44,15 +52,119 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 2400),
     )..repeat(reverse: true);
   }
- 
+
   @override
   void dispose() {
     _pulse.dispose();
     _scan.dispose();
     super.dispose();
   }
- 
-  Future<void> _startScan() async {
+
+  String _issueText(AppLocalizations l, PhotoIssue i) => switch (i) {
+        PhotoIssue.tooDark => l.photoTooDark,
+        PhotoIssue.tooBright => l.photoTooBright,
+        PhotoIssue.noLeaf => l.photoNoLeaf,
+      };
+
+  Future<bool> _confirmPhoto(List<PhotoIssue> issues) async {
+    final l10n = AppLocalizations.of(context)!;
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.photoCheckTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final i in issues)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline_rounded,
+                        size: 18, color: AppColors.warning),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_issueText(l10n, i))),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.retake),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.useAnyway),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
+  /// Opens the camera or gallery, checks the photo, then runs the scan.
+  Future<void> _pick(ImageSource source) async {
+    if (_analyzing || _picking) return;
+    _picking = true;
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      XFile? file;
+      try {
+        file = await _picker.pickImage(
+          source: source,
+          maxWidth: 1600,
+          imageQuality: 88,
+        );
+      } catch (_) {
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(SnackBar(
+            content: Text(source == ImageSource.camera
+                ? l10n.cameraNotAvailable
+                : l10n.pickFailed),
+          ));
+        return;
+      }
+      if (file == null || !mounted) return; // user cancelled
+
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() => _bytes = bytes);
+
+      final issues = await PhotoQuality.check(bytes);
+      if (!mounted) return;
+      if (issues.isNotEmpty) {
+        final proceed = await _confirmPhoto(issues);
+        if (!mounted) return;
+        if (!proceed) {
+          setState(() => _bytes = null);
+          return;
+        }
+      }
+
+      final path = await ImageStore.persist(file);
+      if (!mounted) return;
+      _picking = false;
+      await _startScan(imagePath: path);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _bytes = null);
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(l10n.pickFailed)));
+    } finally {
+      _picking = false;
+    }
+  }
+
+  Future<void> _startScan({String? imagePath}) async {
     if (_analyzing) return;
     HapticFeedback.mediumImpact();
     setState(() {
@@ -60,10 +172,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       _step = 0;
     });
     // The classifier runs while the step animation plays.
-    // TODO(camera): pass the captured / picked image path here.
-    final classification = context.read<ScanProvider>().classify();
+    final classification =
+        context.read<ScanProvider>().classify(imagePath: imagePath);
     // Step timing is for show; it is not real model progress.
-    for (var i = 1; i <= _steps.length; i++) {
+    for (var i = 1; i <= _stepCount; i++) {
       await Future.delayed(const Duration(milliseconds: 550));
       if (!mounted) return;
       setState(() => _step = i);
@@ -75,7 +187,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       MaterialPageRoute(builder: (_) => ResultScreen(result: result)),
     );
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -127,7 +239,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               ),
               if (_analyzing)
                 Positioned.fill(
-                  child: _AnalyzingOverlay(step: _step, steps: _steps),
+                  child: _AnalyzingOverlay(
+                    step: _step,
+                    steps: _stepLabels(AppLocalizations.of(context)!),
+                  ),
                 ),
             ],
           ),
@@ -135,7 +250,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       ),
     );
   }
- 
+
   Widget _buildFrameArea() {
     return LayoutBuilder(
       builder: (context, c) {
@@ -150,32 +265,58 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               width: side,
               height: side,
               child: CustomPaint(
-                painter: _FramePainter(
+                foregroundPainter: _FramePainter(
                   pulse: _pulse,
                   scan: _scan,
                   analyzing: _analyzing,
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.eco_rounded,
-                        size: 54,
-                        color: Colors.white.withValues(alpha: 0.35),
-                      ),
-                      const SizedBox(height: AppSpacing.small),
-                      Text(
-                        'Camera preview',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.55),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                child: _bytes != null
+                    ? Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(22),
+                          child: Image.memory(
+                            _bytes!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.large),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.eco_rounded,
+                                size: 54,
+                                color: Colors.white.withValues(alpha: 0.35),
+                              ),
+                              const SizedBox(height: AppSpacing.small),
+                              Text(
+                                AppLocalizations.of(context)!.noPhotoYet,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                AppLocalizations.of(context)!.takeOrChoose,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontSize: 12,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
               ),
             ),
             const SizedBox(height: AppSpacing.xLarge),
@@ -187,17 +328,17 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                   horizontal: AppSpacing.large,
                   vertical: AppSpacing.medium,
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.center_focus_strong_rounded,
+                    const Icon(Icons.center_focus_strong_rounded,
                         size: 18, color: Colors.white),
-                    SizedBox(width: AppSpacing.small),
+                    const SizedBox(width: AppSpacing.small),
                     Flexible(
                       child: Text(
-                        'Place the leaf within the frame and keep it steady',
+                        AppLocalizations.of(context)!.placeLeafHint,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
                           height: 1.35,
@@ -214,7 +355,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       },
     );
   }
- 
+
   Widget _buildControls() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -237,17 +378,17 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               children: [
                 _SideAction(
                   icon: Icons.photo_library_outlined,
-                  label: 'Gallery',
-                  onTap: _startScan, // demo: opens a sample result
+                  label: AppLocalizations.of(context)!.gallery,
+                  onTap: () => _pick(ImageSource.gallery),
                 ),
                 _CaptureButton(
                   pulse: _pulse,
                   analyzing: _analyzing,
-                  onTap: _startScan,
+                  onTap: () => _pick(ImageSource.camera),
                 ),
-                const _SideAction(
+                _SideAction(
                   icon: Icons.flip_camera_ios_outlined,
-                  label: 'Flip',
+                  label: AppLocalizations.of(context)!.flip,
                   onTap: null, // enabled once the camera plugin is wired in
                 ),
               ],
@@ -255,10 +396,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: AppSpacing.medium),
           Text(
-            'Demo mode: capture opens a sample result',
+            AppLocalizations.of(context)!.demoPhotoNote,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 12,
+              height: 1.4,
             ),
           ),
         ],
@@ -266,11 +409,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Pieces
 // ---------------------------------------------------------------------------
- 
+
 class _TopBar extends StatelessWidget {
   final bool flashOn;
   final VoidCallback? onBack;
@@ -280,7 +423,7 @@ class _TopBar extends StatelessWidget {
     required this.onBack,
     required this.onFlash,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -294,14 +437,14 @@ class _TopBar extends StatelessWidget {
         children: [
           _GlassIconButton(
             icon: Icons.arrow_back_rounded,
-            tooltip: 'Back',
+            tooltip: AppLocalizations.of(context)!.back,
             onTap: onBack,
           ),
           const SizedBox(width: AppSpacing.medium),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Scan Grape Leaf',
-              style: TextStyle(
+              AppLocalizations.of(context)!.scanGrapeLeaf,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -318,9 +461,9 @@ class _TopBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.amber.withValues(alpha: 0.6)),
             ),
-            child: const Text(
-              'DEMO',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context)!.demoBadge,
+              style: const TextStyle(
                 color: AppColors.amber,
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -331,7 +474,9 @@ class _TopBar extends StatelessWidget {
           const SizedBox(width: AppSpacing.small),
           _GlassIconButton(
             icon: flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-            tooltip: flashOn ? 'Flash on' : 'Flash off',
+            tooltip: flashOn
+                ? AppLocalizations.of(context)!.flashOn
+                : AppLocalizations.of(context)!.flashOff,
             onTap: onFlash,
           ),
         ],
@@ -339,7 +484,7 @@ class _TopBar extends StatelessWidget {
     );
   }
 }
- 
+
 /// Frosted-glass container.
 class _Glass extends StatelessWidget {
   final Widget child;
@@ -350,7 +495,7 @@ class _Glass extends StatelessWidget {
     required this.radius,
     required this.padding,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -370,7 +515,7 @@ class _Glass extends StatelessWidget {
     );
   }
 }
- 
+
 class _GlassIconButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
@@ -380,7 +525,7 @@ class _GlassIconButton extends StatelessWidget {
     required this.tooltip,
     required this.onTap,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -409,7 +554,7 @@ class _GlassIconButton extends StatelessWidget {
     );
   }
 }
- 
+
 class _SideAction extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -419,7 +564,7 @@ class _SideAction extends StatelessWidget {
     required this.label,
     required this.onTap,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
@@ -459,7 +604,7 @@ class _SideAction extends StatelessWidget {
     );
   }
 }
- 
+
 class _CaptureButton extends StatelessWidget {
   final Animation<double> pulse;
   final bool analyzing;
@@ -469,12 +614,12 @@ class _CaptureButton extends StatelessWidget {
     required this.analyzing,
     required this.onTap,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Capture leaf',
+      label: AppLocalizations.of(context)!.captureLeaf,
       child: GestureDetector(
         onTap: analyzing ? null : onTap,
         child: AnimatedBuilder(
@@ -520,13 +665,13 @@ class _CaptureButton extends StatelessWidget {
     );
   }
 }
- 
+
 /// Full-screen processing view (kit screen 7), driven by [step].
 class _AnalyzingOverlay extends StatelessWidget {
   final int step;
   final List<String> steps;
   const _AnalyzingOverlay({required this.step, required this.steps});
- 
+
   @override
   Widget build(BuildContext context) {
     final progress = step / steps.length;
@@ -546,9 +691,9 @@ class _AnalyzingOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Analyzing…',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.analyzingTitle,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -615,7 +760,7 @@ class _AnalyzingOverlay extends StatelessWidget {
                       ),
                     const SizedBox(height: AppSpacing.xLarge),
                     Text(
-                      'This may take a few seconds.\nPlease keep the leaf steady.',
+                      AppLocalizations.of(context)!.analyzingHint,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
@@ -633,12 +778,12 @@ class _AnalyzingOverlay extends StatelessWidget {
     );
   }
 }
- 
+
 class _StepIcon extends StatelessWidget {
   final bool done;
   final bool active;
   const _StepIcon({required this.done, required this.active});
- 
+
   @override
   Widget build(BuildContext context) {
     if (done) {
@@ -660,19 +805,19 @@ class _StepIcon extends StatelessWidget {
         size: 22, color: Colors.white.withValues(alpha: 0.35));
   }
 }
- 
+
 /// Rounded corner brackets + animated scan line.
 class _FramePainter extends CustomPainter {
   final Animation<double> pulse;
   final Animation<double> scan;
   final bool analyzing;
- 
+
   _FramePainter({
     required this.pulse,
     required this.scan,
     required this.analyzing,
   }) : super(repaint: Listenable.merge([pulse, scan]));
- 
+
   @override
   void paint(Canvas canvas, Size size) {
     const inset = 3.0;
@@ -680,12 +825,12 @@ class _FramePainter extends CustomPainter {
     final l = inset, t = inset;
     final rt = size.width - inset, b = size.height - inset;
     final len = size.shortestSide * 0.18;
- 
+
     final rrect = RRect.fromLTRBR(l, t, rt, b, const Radius.circular(r));
     canvas.drawRRect(rrect, Paint()..color = Colors.white.withValues(alpha: 0.05));
- 
+
     final tone = analyzing ? Colors.white : AppColors.primaryGlow;
- 
+
     // Scan line (clipped to the frame)
     canvas.save();
     canvas.clipRRect(rrect);
@@ -712,7 +857,7 @@ class _FramePainter extends CustomPainter {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5),
     );
     canvas.restore();
- 
+
     // Corner brackets
     final p = Paint()
       ..color = tone.withValues(alpha: analyzing ? 1 : 0.65 + 0.35 * pulse.value)
@@ -720,7 +865,7 @@ class _FramePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     const d = r * 2;
- 
+
     canvas.drawPath(
       Path()
         ..moveTo(l, t + len)
@@ -754,7 +899,7 @@ class _FramePainter extends CustomPainter {
       p,
     );
   }
- 
+
   @override
   bool shouldRepaint(_FramePainter old) => old.analyzing != analyzing;
 }

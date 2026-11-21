@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
- 
+
 import '../data/disease_catalog.dart';
+import '../l10n/app_localizations.dart';
 import '../models/scan_result.dart';
 import '../providers/scan_provider.dart';
 import '../theme/app_theme.dart';
@@ -11,32 +12,33 @@ import '../widgets/buttons/primary_button.dart';
 import '../widgets/cards/app_card.dart';
 import '../widgets/indicators/confidence_bar.dart';
 import '../widgets/indicators/severity_chip.dart';
+import '../widgets/scan_image.dart';
 import 'home_screen.dart';
- 
-// TODO(l10n): move all strings below into the .arb files (en + mr).
- 
+
+
 /// Below this confidence we ask the user to retake the photo.
 const double _lowConfidence = 0.70;
- 
+
 class ResultScreen extends StatefulWidget {
   final ScanResult result;
   const ResultScreen({super.key, required this.result});
- 
+
   @override
   State<ResultScreen> createState() => _ResultScreenState();
 }
- 
+
 class _ResultScreenState extends State<ResultScreen> {
   bool _showHeatmap = false;
   double _heatOpacity = 0.75;
   late bool _saved = widget.result.id != null; // opened from history
   bool _saving = false;
- 
+
   Future<void> _save() async {
     if (_saved || _saving) return;
     HapticFeedback.selectionClick();
     final scans = context.read<ScanProvider>();
     final messenger = ScaffoldMessenger.of(context);
+    final savedText = AppLocalizations.of(context)!.savedToHistory;
     setState(() => _saving = true);
     await scans.save(widget.result);
     if (!mounted) return;
@@ -44,34 +46,35 @@ class _ResultScreenState extends State<ResultScreen> {
       _saving = false;
       _saved = true;
     });
-    messenger.showSnackBar(const SnackBar(content: Text('Saved to history')));
+    messenger.showSnackBar(SnackBar(content: Text(savedText)));
   }
- 
+
   void _goHome() {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
       (route) => false,
     );
   }
- 
+
   @override
   Widget build(BuildContext context) {
     final r = widget.result;
-    final lang = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+    final lang = l10n.localeName;
     final disease = DiseaseCatalog.byId(r.diseaseId);
     const gap = SizedBox(height: AppSpacing.large);
- 
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppTheme.systemUiOverlay,
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
           leading: IconButton(
-            tooltip: 'Back',
+            tooltip: l10n.back,
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_rounded),
           ),
-          title: const Text('Result'),
+          title: Text(l10n.result),
         ),
         body: Center(
           child: ConstrainedBox(
@@ -84,7 +87,10 @@ class _ResultScreenState extends State<ResultScreen> {
                 AppSpacing.xLarge,
               ),
               children: [
-                if (r.isSample) ...[const _SampleNotice(), gap],
+                if (r.isSample) ...[
+                  _SampleNotice(hasPhoto: r.imagePath != null),
+                  gap,
+                ],
                 if (r.confidence < _lowConfidence) ...[
                   const _LowConfidenceNotice(),
                   gap,
@@ -97,6 +103,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
                 gap,
                 _ExplainCard(
+                  imagePath: r.imagePath,
                   showHeatmap: _showHeatmap,
                   opacity: _heatOpacity,
                   onToggle: (v) => setState(() => _showHeatmap = v),
@@ -107,25 +114,25 @@ class _ResultScreenState extends State<ResultScreen> {
                 gap,
                 _TreatmentCard(
                   title: disease.isHealthy
-                      ? 'Care tips'
-                      : 'Treatment recommendation',
-                  steps: disease.treatment,
+                      ? l10n.careTips
+                      : l10n.treatmentRecommendation,
+                  steps: disease.treatmentFor(lang),
                 ),
                 gap,
                 _InfoSection(
                   icon: Icons.info_outline_rounded,
-                  title: 'About this leaf',
-                  child: Text(disease.about, style: _bodyStyle),
+                  title: l10n.aboutThisLeaf,
+                  child: Text(disease.aboutFor(lang), style: _bodyStyle),
                 ),
                 if (disease.symptoms.isNotEmpty) ...[
                   gap,
                   _InfoSection(
                     icon: Icons.search_rounded,
-                    title: 'Symptoms to look for',
+                    title: l10n.symptomsToLookFor,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        for (final s in disease.symptoms) _Bullet(s),
+                        for (final s in disease.symptomsFor(lang)) _Bullet(s),
                       ],
                     ),
                   ),
@@ -165,7 +172,7 @@ class _ResultScreenState extends State<ResultScreen> {
                                 : Icons.bookmark_add_outlined,
                             size: 18,
                           ),
-                          label: Text(_saved ? 'Saved' : 'Save'),
+                          label: Text(_saved ? l10n.saved : l10n.saveResult),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size.fromHeight(54),
                             shape: const StadiumBorder(),
@@ -182,7 +189,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       Expanded(
                         flex: 2,
                         child: PrimaryButton(
-                          label: 'Back to dashboard',
+                          label: l10n.backToDashboard,
                           icon: Icons.home_rounded,
                           onPressed: _goHome,
                         ),
@@ -198,22 +205,25 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 }
- 
+
 const TextStyle _bodyStyle = TextStyle(
   fontSize: 14,
   height: 1.6,
   color: AppColors.textSecondary,
 );
- 
+
 // ---------------------------------------------------------------------------
 // Sections
 // ---------------------------------------------------------------------------
- 
+
 class _SampleNotice extends StatelessWidget {
-  const _SampleNotice();
- 
+  final bool hasPhoto;
+  const _SampleNotice({required this.hasPhoto});
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final text = hasPhoto ? l10n.demoPhotoNote : l10n.demoResultNote;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.medium),
       decoration: BoxDecoration(
@@ -221,16 +231,15 @@ class _SampleNotice extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.control),
         border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.science_outlined, size: 18, color: AppColors.warning),
-          SizedBox(width: AppSpacing.small),
+          const Icon(Icons.science_outlined, size: 18, color: AppColors.warning),
+          const SizedBox(width: AppSpacing.small),
           Expanded(
             child: Text(
-              'Demo result from the sample classifier. It is not a real '
-              'diagnosis, and the heatmap below is a placeholder.',
-              style: TextStyle(
+              text,
+              style: const TextStyle(
                 fontSize: 13,
                 height: 1.4,
                 color: AppColors.textPrimary,
@@ -242,10 +251,10 @@ class _SampleNotice extends StatelessWidget {
     );
   }
 }
- 
+
 class _LowConfidenceNotice extends StatelessWidget {
   const _LowConfidenceNotice();
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -255,16 +264,16 @@ class _LowConfidenceNotice extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.control),
         border: Border.all(color: AppColors.danger.withValues(alpha: 0.25)),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.warning_amber_rounded, size: 18, color: AppColors.danger),
-          SizedBox(width: AppSpacing.small),
+          const Icon(Icons.warning_amber_rounded,
+              size: 18, color: AppColors.danger),
+          const SizedBox(width: AppSpacing.small),
           Expanded(
             child: Text(
-              'The model is not very sure about this leaf. Retake the photo '
-              'in good light with the leaf filling the frame.',
-              style: TextStyle(
+              AppLocalizations.of(context)!.lowConfidenceNote,
+              style: const TextStyle(
                 fontSize: 13,
                 height: 1.4,
                 color: AppColors.textPrimary,
@@ -276,20 +285,20 @@ class _LowConfidenceNotice extends StatelessWidget {
     );
   }
 }
- 
+
 class _DiagnosisCard extends StatelessWidget {
   final String name;
   final String scientificName;
   final DiseaseSeverity severity;
   final double confidence;
- 
+
   const _DiagnosisCard({
     required this.name,
     required this.scientificName,
     required this.severity,
     required this.confidence,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -301,7 +310,7 @@ class _DiagnosisCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SeverityChip(
-                  label: severityLabel(severity),
+                  label: severityText(AppLocalizations.of(context)!, severity),
                   severity: toUiSeverity(severity),
                 ),
                 const SizedBox(height: AppSpacing.medium),
@@ -336,15 +345,15 @@ class _DiagnosisCard extends StatelessWidget {
     );
   }
 }
- 
+
 class _ConfidenceRing extends StatelessWidget {
   final double value;
   const _ConfidenceRing({required this.value});
- 
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Confidence ${(value * 100).round()} percent',
+      label: '${AppLocalizations.of(context)!.confidence} ${(value * 100).round()}%',
       child: SizedBox(
         width: 84,
         height: 84,
@@ -378,9 +387,10 @@ class _ConfidenceRing extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const Text(
-                  'confidence',
-                  style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                Text(
+                  AppLocalizations.of(context)!.confidence.toLowerCase(),
+                  style: const TextStyle(
+                      fontSize: 10, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -390,21 +400,23 @@ class _ConfidenceRing extends StatelessWidget {
     );
   }
 }
- 
+
 /// Explainable-AI card: Original / Grad-CAM toggle + opacity slider.
 class _ExplainCard extends StatelessWidget {
+  final String? imagePath;
   final bool showHeatmap;
   final double opacity;
   final ValueChanged<bool> onToggle;
   final ValueChanged<double> onOpacity;
- 
+
   const _ExplainCard({
+    this.imagePath,
     required this.showHeatmap,
     required this.opacity,
     required this.onToggle,
     required this.onOpacity,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -412,9 +424,9 @@ class _ExplainCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _CardTitle(
+          _CardTitle(
             icon: Icons.insights_rounded,
-            title: 'What the AI focused on',
+            title: AppLocalizations.of(context)!.whatAiFocusedOn,
           ),
           const SizedBox(height: AppSpacing.medium),
           _ViewToggle(showHeatmap: showHeatmap, onChanged: onToggle),
@@ -426,12 +438,18 @@ class _ExplainCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  const CustomPaint(painter: _LeafPainter()),
-                  AnimatedOpacity(
-                    opacity: showHeatmap ? opacity : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const CustomPaint(painter: _HeatPainter()),
-                  ),
+                  if (imagePath != null)
+                    ScanImage(path: imagePath!, fit: BoxFit.cover)
+                  else
+                    const CustomPaint(painter: _LeafPainter()),
+                  if (imagePath == null)
+                    AnimatedOpacity(
+                      opacity: showHeatmap ? opacity : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const CustomPaint(painter: _HeatPainter()),
+                    )
+                  else if (showHeatmap)
+                    const Positioned.fill(child: _HeatmapUnavailable()),
                   Positioned(
                     left: 10,
                     top: 10,
@@ -443,7 +461,8 @@ class _ExplainCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        showHeatmap ? 'GRAD-CAM (SAMPLE)' : 'ORIGINAL (SAMPLE)',
+                        '${showHeatmap ? AppLocalizations.of(context)!.gradCam.toUpperCase() : AppLocalizations.of(context)!.original.toUpperCase()}'
+                        '${imagePath == null ? ' ${AppLocalizations.of(context)!.sampleSuffix}' : ''}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -457,7 +476,7 @@ class _ExplainCard extends StatelessWidget {
               ),
             ),
           ),
-          if (showHeatmap) ...[
+          if (showHeatmap && imagePath == null) ...[
             const SizedBox(height: AppSpacing.small),
             Row(
               children: [
@@ -496,17 +515,15 @@ class _ExplainCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadii.control),
               border: Border.all(color: AppColors.border),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.lightbulb_outline_rounded,
+                const Icon(Icons.lightbulb_outline_rounded,
                     size: 18, color: AppColors.primary),
                 SizedBox(width: AppSpacing.small),
                 Expanded(
                   child: Text(
-                    'Warm colours mark the leaf areas that influenced the '
-                    'prediction most. Real Grad-CAM heatmaps will appear here '
-                    'once the trained model is connected.',
+                    AppLocalizations.of(context)!.heatmapExplain,
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.45,
@@ -522,12 +539,43 @@ class _ExplainCard extends StatelessWidget {
     );
   }
 }
- 
+
+/// Shown over a real photo: we must not draw a fake heatmap on it.
+class _HeatmapUnavailable extends StatelessWidget {
+  const _HeatmapUnavailable();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.5),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(AppSpacing.large),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.layers_clear_rounded, color: Colors.white, size: 34),
+          const SizedBox(height: AppSpacing.small),
+          Text(
+            AppLocalizations.of(context)!.heatmapNeedsModel,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.4,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ViewToggle extends StatelessWidget {
   final bool showHeatmap;
   final ValueChanged<bool> onChanged;
   const _ViewToggle({required this.showHeatmap, required this.onChanged});
- 
+
   @override
   Widget build(BuildContext context) {
     Widget seg(String label, bool heat) {
@@ -561,7 +609,7 @@ class _ViewToggle extends StatelessWidget {
         ),
       );
     }
- 
+
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -569,16 +617,19 @@ class _ViewToggle extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(children: [seg('Original', false), seg('Grad-CAM', true)]),
+      child: Row(children: [
+          seg(AppLocalizations.of(context)!.original, false),
+          seg(AppLocalizations.of(context)!.gradCam, true),
+        ]),
     );
   }
 }
- 
+
 class _PredictionsCard extends StatelessWidget {
   final List<Prediction> predictions;
   final String lang;
   const _PredictionsCard({required this.predictions, required this.lang});
- 
+
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -586,9 +637,9 @@ class _PredictionsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _CardTitle(
+          _CardTitle(
             icon: Icons.leaderboard_rounded,
-            title: 'Top predictions',
+            title: AppLocalizations.of(context)!.topPredictions,
           ),
           const SizedBox(height: AppSpacing.medium),
           for (var i = 0; i < predictions.length; i++)
@@ -619,12 +670,12 @@ class _PredictionsCard extends StatelessWidget {
     );
   }
 }
- 
+
 class _TreatmentCard extends StatelessWidget {
   final String title;
   final List<String> steps;
   const _TreatmentCard({required this.title, required this.steps});
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -641,10 +692,9 @@ class _TreatmentCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.medium),
           for (var i = 0; i < steps.length; i++) _Step('${i + 1}', steps[i]),
           const SizedBox(height: AppSpacing.xSmall),
-          const Text(
-            'General guidance only. Confirm products and doses with the '
-            'label and your local agriculture officer.',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.guidanceDisclaimer,
+            style: const TextStyle(
               fontSize: 12,
               height: 1.4,
               color: AppColors.textSecondary,
@@ -655,7 +705,7 @@ class _TreatmentCard extends StatelessWidget {
     );
   }
 }
- 
+
 class _InfoSection extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -665,7 +715,7 @@ class _InfoSection extends StatelessWidget {
     required this.title,
     required this.child,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -681,16 +731,16 @@ class _InfoSection extends StatelessWidget {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Small pieces
 // ---------------------------------------------------------------------------
- 
+
 class _CardTitle extends StatelessWidget {
   final IconData icon;
   final String title;
   const _CardTitle({required this.icon, required this.title});
- 
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -719,11 +769,11 @@ class _CardTitle extends StatelessWidget {
     );
   }
 }
- 
+
 class _Bullet extends StatelessWidget {
   final String text;
   const _Bullet(this.text);
- 
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -747,12 +797,12 @@ class _Bullet extends StatelessWidget {
     );
   }
 }
- 
+
 class _Step extends StatelessWidget {
   final String step;
   final String text;
   const _Step(this.step, this.text);
- 
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -789,24 +839,24 @@ class _Step extends StatelessWidget {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
 // Placeholder leaf + heatmap (sample visuals until real images exist)
 // ---------------------------------------------------------------------------
- 
+
 const List<(double, double, double)> _blotches = [
   (0.40, 0.38, 0.13),
   (0.63, 0.52, 0.15),
   (0.45, 0.68, 0.11),
 ];
- 
+
 class _LeafPainter extends CustomPainter {
   const _LeafPainter();
- 
+
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width, h = size.height;
- 
+
     canvas.drawRect(
       Offset.zero & size,
       Paint()
@@ -816,14 +866,14 @@ class _LeafPainter extends CustomPainter {
           colors: [Color(0xFFDDE9D4), Color(0xFFBFD5B4)],
         ).createShader(Offset.zero & size),
     );
- 
+
     final cx = w * 0.5;
     final leaf = Path()
       ..moveTo(cx, h * 0.08)
       ..cubicTo(w * 0.86, h * 0.18, w * 0.92, h * 0.70, cx, h * 0.92)
       ..cubicTo(w * 0.08, h * 0.70, w * 0.14, h * 0.18, cx, h * 0.08)
       ..close();
- 
+
     canvas.drawShadow(leaf, Colors.black, 6, true);
     canvas.drawPath(
       leaf,
@@ -834,7 +884,7 @@ class _LeafPainter extends CustomPainter {
           colors: [Color(0xFF52B788), Color(0xFF2D6A4F)],
         ).createShader(Offset.zero & size),
     );
- 
+
     final vein = Paint()
       ..color = Colors.white.withValues(alpha: 0.35)
       ..strokeWidth = 2
@@ -852,7 +902,7 @@ class _LeafPainter extends CustomPainter {
       Offset(cx, h * 0.99),
       vein..strokeWidth = 3,
     );
- 
+
     // Pale powdery patches
     for (final b in _blotches) {
       final c = Offset(w * b.$1, h * b.$2);
@@ -865,14 +915,14 @@ class _LeafPainter extends CustomPainter {
       );
     }
   }
- 
+
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
- 
+
 class _HeatPainter extends CustomPainter {
   const _HeatPainter();
- 
+
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width, h = size.height;
@@ -895,8 +945,7 @@ class _HeatPainter extends CustomPainter {
       );
     }
   }
- 
+
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
- 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
- 
+
+import '../l10n/app_localizations.dart';
 import '../data/disease_catalog.dart';
 import '../models/scan_result.dart';
 import '../providers/scan_provider.dart';
@@ -13,11 +14,10 @@ import '../widgets/indicators/severity_chip.dart';
 import '../widgets/leaf_thumb.dart';
 import 'result_screen.dart';
 import 'scan_screen.dart';
- 
-// TODO(l10n): move strings into the .arb files (en + mr).
- 
+
+
 enum _Filter { all, diseased, healthy }
- 
+
 /// Display row built from a stored [ScanResult].
 class _Item {
   final ScanResult result;
@@ -27,7 +27,7 @@ class _Item {
   final String group;
   final String time;
   final int confidence;
- 
+
   const _Item({
     required this.result,
     required this.name,
@@ -37,42 +37,42 @@ class _Item {
     required this.time,
     required this.confidence,
   });
- 
+
   bool get healthy => severity == Severity.healthy;
   int get id => result.id ?? -1;
- 
-  factory _Item.from(ScanResult r, String lang) => _Item(
+
+  factory _Item.from(ScanResult r, AppLocalizations l10n) => _Item(
         result: r,
-        name: DiseaseCatalog.byId(r.diseaseId).name(lang),
+        name: DiseaseCatalog.byId(r.diseaseId).name(l10n.localeName),
         severity: toUiSeverity(r.severity),
-        severityName: severityLabel(r.severity),
-        group: dayGroupLabel(r.createdAt),
-        time: timeLabel(r.createdAt),
+        severityName: severityText(l10n, r.severity),
+        group: dayGroupLabel(r.createdAt, l10n),
+        time: timeLabel(r.createdAt, l10n.localeName),
         confidence: (r.confidence * 100).round(),
       );
 }
- 
+
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
- 
+
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
- 
+
 class _HistoryScreenState extends State<HistoryScreen> {
   final TextEditingController _search = TextEditingController();
   _Filter _filter = _Filter.all;
- 
+
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
   }
- 
-  List<_Item> _visible(List<ScanResult> scans, String lang) {
+
+  List<_Item> _visible(List<ScanResult> scans, AppLocalizations l10n) {
     final q = _search.text.trim().toLowerCase();
     return scans
-        .map((r) => _Item.from(r, lang))
+        .map((r) => _Item.from(r, l10n))
         .where((i) {
           final okFilter = switch (_filter) {
             _Filter.all => true,
@@ -83,9 +83,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         })
         .toList();
   }
- 
+
   void _delete(_Item item) {
     HapticFeedback.lightImpact();
+    final l10n = AppLocalizations.of(context)!;
     final scans = context.read<ScanProvider>();
     final messenger = ScaffoldMessenger.of(context);
     scans.delete(item.result);
@@ -93,33 +94,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: Text('${item.name} removed'),
+          content: Text(l10n.removedItem(item.name)),
           action: SnackBarAction(
-            label: 'Undo',
+            label: l10n.undo,
             textColor: AppColors.primaryGlow,
             onPressed: () => scans.restore(item.result),
           ),
         ),
       );
   }
- 
+
   void _openScan() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const ScanScreen()),
     );
   }
- 
+
   @override
   Widget build(BuildContext context) {
     final scans = context.watch<ScanProvider>();
-    final lang = Localizations.localeOf(context).languageCode;
-    final visible = _visible(scans.scans, lang);
- 
+    final l10n = AppLocalizations.of(context)!;
+    final visible = _visible(scans.scans, l10n);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        title: const Text('Scan History'),
+        title: Text(l10n.scanHistory),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
@@ -155,7 +156,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     onChanged: (_) => setState(() {}),
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
-                      hintText: 'Search by disease name',
+                      hintText: l10n.searchByDisease,
                       hintStyle:
                           const TextStyle(color: AppColors.textTertiary),
                       prefixIcon: const Icon(Icons.search_rounded,
@@ -163,7 +164,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       suffixIcon: _search.text.isEmpty
                           ? null
                           : IconButton(
-                              tooltip: 'Clear search',
+                              tooltip: l10n.clearSearch,
                               icon: const Icon(Icons.close_rounded),
                               onPressed: () =>
                                   setState(() => _search.clear()),
@@ -198,20 +199,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: Row(
                     children: [
                       _FilterPill(
-                        label: 'All',
+                        label: l10n.all,
                         selected: _filter == _Filter.all,
                         onTap: () => setState(() => _filter = _Filter.all),
                       ),
                       const SizedBox(width: AppSpacing.small),
                       _FilterPill(
-                        label: 'Diseased',
+                        label: l10n.diseased,
                         selected: _filter == _Filter.diseased,
                         onTap: () =>
                             setState(() => _filter = _Filter.diseased),
                       ),
                       const SizedBox(width: AppSpacing.small),
                       _FilterPill(
-                        label: 'Healthy',
+                        label: l10n.healthy,
                         selected: _filter == _Filter.healthy,
                         onTap: () =>
                             setState(() => _filter = _Filter.healthy),
@@ -227,28 +228,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
     );
   }
- 
+
   Widget _buildList(ScanProvider scans, List<_Item> visible) {
+    final l10n = AppLocalizations.of(context)!;
     if (!scans.loaded) {
       return const Center(child: CircularProgressIndicator());
     }
     if (scans.total == 0) {
       return EmptyState(
         icon: Icons.eco_rounded,
-        title: 'No detections yet',
-        message: 'Scan a grape leaf to get started and save your results here.',
-        actionLabel: 'Scan Leaf',
+        title: l10n.noDetectionsYet,
+        message: l10n.noDetectionsMessage,
+        actionLabel: l10n.scanLeaf,
         onAction: _openScan,
       );
     }
     if (visible.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.search_off_rounded,
-        title: 'No matching scans',
-        message: 'Try a different name or switch the filter to All.',
+        title: l10n.noMatchingScans,
+        message: l10n.noMatchingHint,
       );
     }
- 
+
     final children = <Widget>[];
     String? lastGroup;
     for (final item in visible) {
@@ -285,7 +287,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       );
     }
- 
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.large,
@@ -297,9 +299,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
- 
+
 // ---------------------------------------------------------------------------
- 
+
 class _OverviewCard extends StatelessWidget {
   final int total, diseased, healthy;
   final bool showSample;
@@ -309,9 +311,10 @@ class _OverviewCard extends StatelessWidget {
     required this.healthy,
     required this.showSample,
   });
- 
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final ratio = total == 0 ? 0.0 : healthy / total;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.large),
@@ -326,8 +329,8 @@ class _OverviewCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
-                child: Text('Overview', style: AppTypography.sectionTitle),
+              Expanded(
+                child: Text(l10n.overview, style: AppTypography.sectionTitle),
               ),
               if (showSample)
                 Container(
@@ -337,9 +340,9 @@ class _OverviewCard extends StatelessWidget {
                   color: AppColors.primaryMuted,
                   borderRadius: BorderRadius.circular(AppRadii.small),
                 ),
-                child: const Text(
-                  'SAMPLE RECORDS',
-                  style: TextStyle(
+                child: Text(
+                  l10n.sampleRecords.toUpperCase(),
+                  style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -352,16 +355,16 @@ class _OverviewCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.medium),
           Row(
             children: [
-              _Stat('$total', 'Total', AppColors.textPrimary),
-              _Stat('$diseased', 'Diseased', AppColors.danger),
-              _Stat('$healthy', 'Healthy', AppColors.success),
+              _Stat('$total', l10n.total, AppColors.textPrimary),
+              _Stat('$diseased', l10n.diseased, AppColors.danger),
+              _Stat('$healthy', l10n.healthy, AppColors.success),
             ],
           ),
           const SizedBox(height: AppSpacing.medium),
           ConfidenceBar(value: ratio, color: AppColors.success, height: 8),
           const SizedBox(height: 6),
           Text(
-            '${(ratio * 100).round()}% of scans are healthy',
+            l10n.percentHealthy((ratio * 100).round()),
             style: const TextStyle(
                 fontSize: 12, color: AppColors.textSecondary),
           ),
@@ -370,12 +373,12 @@ class _OverviewCard extends StatelessWidget {
     );
   }
 }
- 
+
 class _Stat extends StatelessWidget {
   final String value, label;
   final Color color;
   const _Stat(this.value, this.label, this.color);
- 
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -397,7 +400,7 @@ class _Stat extends StatelessWidget {
     );
   }
 }
- 
+
 class _FilterPill extends StatelessWidget {
   final String label;
   final bool selected;
@@ -407,7 +410,7 @@ class _FilterPill extends StatelessWidget {
     required this.selected,
     required this.onTap,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -443,11 +446,11 @@ class _FilterPill extends StatelessWidget {
     );
   }
 }
- 
+
 class _GroupHeader extends StatelessWidget {
   final String text;
   const _GroupHeader(this.text);
- 
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -467,12 +470,12 @@ class _GroupHeader extends StatelessWidget {
     );
   }
 }
- 
+
 class _HistoryEntry extends StatelessWidget {
   final _Item item;
   final VoidCallback onTap;
   const _HistoryEntry({required this.item, required this.onTap});
- 
+
   @override
   Widget build(BuildContext context) {
     final color = item.severity.color;
@@ -492,7 +495,11 @@ class _HistoryEntry extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.medium),
             child: Row(
               children: [
-                LeafThumb(size: 58, spot: item.healthy ? null : color),
+                LeafThumb(
+                  size: 58,
+                  spot: item.healthy ? null : color,
+                  imagePath: item.result.imagePath,
+                ),
                 const SizedBox(width: AppSpacing.medium),
                 Expanded(
                   child: Column(
@@ -542,9 +549,9 @@ class _HistoryEntry extends StatelessWidget {
                         color: color,
                       ),
                     ),
-                    const Text(
-                      'confidence',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.confidence.toLowerCase(),
+                      style: const TextStyle(
                           fontSize: 10, color: AppColors.textSecondary),
                     ),
                   ],
