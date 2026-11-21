@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
- 
+
 import '../../theme/app_theme.dart';
 import '../pressable_scale.dart';
- 
+
 /// Standard soft card used across all screens.
 /// When [onTap] is set the card also gives a small press-in animation.
 class AppCard extends StatelessWidget {
@@ -11,7 +11,7 @@ class AppCard extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? color;
   final bool shadow;
- 
+
   const AppCard({
     super.key,
     required this.child,
@@ -20,7 +20,7 @@ class AppCard extends StatelessWidget {
     this.color,
     this.shadow = true,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final card = Container(

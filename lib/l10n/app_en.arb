@@ -112,5 +112,97 @@
   "wxFog": "Fog",
   "wxDrizzle": "Drizzle",
   "wxRain": "Rain",
-  "wxStorm": "Thunderstorm"
+  "wxStorm": "Thunderstorm",
+  "all": "All",
+  "overview": "Overview",
+  "noDetectionsYet": "No detections yet",
+  "noDetectionsMessage": "Scan a grape leaf to get started and save your results here.",
+  "noMatchingScans": "No matching scans",
+  "noMatchingHint": "Try a different name or switch the filter to All.",
+  "searchByDisease": "Search by disease name",
+  "clearSearch": "Clear search",
+  "undo": "Undo",
+  "removedItem": "{name} removed",
+  "@removedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "percentHealthy": "{percent}% of scans are healthy",
+  "@percentHealthy": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "noNewAlerts": "No new alerts",
+  "alerts": "Alerts",
+  "changeLanguage": "Change language",
+  "aiLeafScan": "AI LEAF SCAN",
+  "demoBadge": "DEMO",
+  "sampleLabel": "sample",
+  "kmPerHour": "km/h",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "back": "Back",
+  "skip": "Skip",
+  "continueLabel": "Continue",
+  "getStarted": "Get Started",
+  "pageOf": "Page {current} of {total}",
+  "@pageOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onbDetectTag": "DETECT",
+  "onbDetectTitle": "Spot leaf diseases early",
+  "onbDetectBody": "Scan a grape leaf with your camera or pick a photo from your gallery and get a likely diagnosis.",
+  "onbDetectChip1": "Camera or gallery",
+  "onbDetectChip2": "Fast analysis",
+  "onbUnderstandTag": "UNDERSTAND",
+  "onbUnderstandTitle": "See why the AI decided",
+  "onbUnderstandBody": "Explainable heatmaps highlight the parts of the leaf the model focused on, so you can check the result yourself.",
+  "onbUnderstandChip1": "Heatmap overlay",
+  "onbCareTag": "CARE",
+  "onbCareTitle": "Get clear treatment tips",
+  "onbCareBody": "Receive simple, step-by-step guidance for each disease and keep a history of every scan.",
+  "onbCareChip1": "Step-by-step care",
+  "onbCareChip2": "Marathi & English",
+  "result": "Result",
+  "savedToHistory": "Saved to history",
+  "saved": "Saved",
+  "careTips": "Care tips",
+  "treatmentRecommendation": "Treatment recommendation",
+  "aboutThisLeaf": "About this leaf",
+  "symptomsToLookFor": "Symptoms to look for",
+  "demoResultNote": "Demo result from the sample classifier. It is not a real diagnosis, and the heatmap below is a placeholder.",
+  "lowConfidenceNote": "The model is not very sure about this leaf. Retake the photo in good light with the leaf filling the frame.",
+  "whatAiFocusedOn": "What the AI focused on",
+  "original": "Original",
+  "gradCam": "Grad-CAM",
+  "sampleSuffix": "(SAMPLE)",
+  "heatmapExplain": "Warm colours mark the leaf areas that influenced the prediction most. Real Grad-CAM heatmaps will appear here once the trained model is connected.",
+  "topPredictions": "Top predictions",
+  "guidanceDisclaimer": "General guidance only. Confirm products and doses with the label and your local agriculture officer.",
+  "stepPreprocessing": "Preprocessing image",
+  "stepFeatures": "Feature extraction",
+  "stepPredicting": "Predicting disease",
+  "stepExplanation": "Generating explanation",
+  "placeLeafHint": "Place the leaf within the frame and keep it steady",
+  "scanGrapeLeaf": "Scan Grape Leaf",
+  "flashOn": "Flash on",
+  "flashOff": "Flash off",
+  "captureLeaf": "Capture leaf",
+  "analyzingTitle": "Analyzing…",
+  "analyzingHint": "This may take a few seconds. Please keep the leaf steady.",
+  "splashTagline": "Healthy Grapes  |  Better Harvests",
+  "splashFooter": "EXPLAINABLE AI  ·  GRAPE LEAF DISEASE DETECTION"
 }

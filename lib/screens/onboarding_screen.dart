@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
- 
+
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../widgets/buttons/primary_button.dart';
 import '../widgets/grape_logo.dart';
 import 'home_screen.dart';
- 
-// TODO(l10n): move all strings below into the .arb files (en + mr).
- 
+
+
 class _OBPage {
   final String tag;
   final String title;
   final String body;
   final IconData icon;
   final List<(IconData, String)> chips;
- 
+
   const _OBPage({
     required this.tag,
     required this.title,
@@ -23,56 +23,55 @@ class _OBPage {
     required this.chips,
   });
 }
- 
-const List<_OBPage> _pages = [
-  _OBPage(
-    tag: 'DETECT',
-    title: 'Spot leaf diseases early',
-    body: 'Scan a grape leaf with your camera or pick a photo from your '
-        'gallery and get a likely diagnosis.',
-    icon: Icons.document_scanner_rounded,
-    chips: [
-      (Icons.photo_camera_outlined, 'Camera or gallery'),
-      (Icons.bolt_rounded, 'Fast analysis'),
-    ],
-  ),
-  _OBPage(
-    tag: 'UNDERSTAND',
-    title: 'See why the AI decided',
-    body: 'Explainable heatmaps highlight the parts of the leaf the model '
-        'focused on, so you can check the result yourself.',
-    icon: Icons.insights_rounded,
-    chips: [
-      (Icons.layers_rounded, 'Heatmap overlay'),
-      (Icons.leaderboard_rounded, 'Top predictions'),
-    ],
-  ),
-  _OBPage(
-    tag: 'CARE',
-    title: 'Get clear treatment tips',
-    body: 'Receive simple, step-by-step guidance for each disease and keep '
-        'a history of every scan.',
-    icon: Icons.healing_rounded,
-    chips: [
-      (Icons.checklist_rounded, 'Step-by-step care'),
-      (Icons.translate_rounded, 'Marathi & English'),
-    ],
-  ),
-];
- 
+
+List<_OBPage> _buildPages(AppLocalizations l) => [
+      _OBPage(
+        tag: l.onbDetectTag,
+        title: l.onbDetectTitle,
+        body: l.onbDetectBody,
+        icon: Icons.document_scanner_rounded,
+        chips: [
+          (Icons.photo_camera_outlined, l.onbDetectChip1),
+          (Icons.bolt_rounded, l.onbDetectChip2),
+        ],
+      ),
+      _OBPage(
+        tag: l.onbUnderstandTag,
+        title: l.onbUnderstandTitle,
+        body: l.onbUnderstandBody,
+        icon: Icons.insights_rounded,
+        chips: [
+          (Icons.layers_rounded, l.onbUnderstandChip1),
+          (Icons.leaderboard_rounded, l.topPredictions),
+        ],
+      ),
+      _OBPage(
+        tag: l.onbCareTag,
+        title: l.onbCareTitle,
+        body: l.onbCareBody,
+        icon: Icons.healing_rounded,
+        chips: [
+          (Icons.checklist_rounded, l.onbCareChip1),
+          (Icons.translate_rounded, l.onbCareChip2),
+        ],
+      ),
+    ];
+
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
- 
+
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
- 
+
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pc = PageController();
   int _page = 0;
- 
-  bool get _isLast => _page == _pages.length - 1;
- 
+
+  static const int _pageCount = 3;
+
+  bool get _isLast => _page == _pageCount - 1;
+
   void _goHome() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
@@ -83,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
- 
+
   void _next() {
     if (_isLast) {
       _goHome();
@@ -94,15 +93,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
     }
   }
- 
+
   @override
   void dispose() {
     _pc.dispose();
     super.dispose();
   }
- 
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pages = _buildPages(l10n);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppTheme.systemUiOverlay,
       child: Scaffold(
@@ -148,8 +149,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ignoring: _isLast,
                               child: TextButton(
                                 onPressed: _goHome,
-                                child: const Text(
-                                  'Skip',
+                                child: Text(
+                                  l10n.skip,
                                   style: TextStyle(
                                     color: AppColors.textSecondary,
                                     fontWeight: FontWeight.w700,
@@ -165,8 +166,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: PageView.builder(
                         controller: _pc,
                         onPageChanged: (i) => setState(() => _page = i),
-                        itemCount: _pages.length,
-                        itemBuilder: (context, i) => _PageContent(page: _pages[i]),
+                        itemCount: pages.length,
+                        itemBuilder: (context, i) => _PageContent(page: pages[i]),
                       ),
                     ),
                     Padding(
@@ -179,9 +180,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: Row(
                         children: [
                           Semantics(
-                            label: 'Page ${_page + 1} of ${_pages.length}',
+                            label: l10n.pageOf(_page + 1, pages.length),
                             child: Row(
-                              children: List.generate(_pages.length, (i) {
+                              children: List.generate(pages.length, (i) {
                                 final active = _page == i;
                                 return AnimatedContainer(
                                   duration: const Duration(milliseconds: 250),
@@ -203,7 +204,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           SizedBox(
                             width: 176,
                             child: PrimaryButton(
-                              label: _isLast ? 'Get Started' : 'Continue',
+                              label: _isLast ? l10n.getStarted : l10n.continueLabel,
                               icon: _isLast
                                   ? Icons.check_rounded
                                   : Icons.arrow_forward_rounded,
@@ -223,11 +224,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 }
- 
+
 class _PageContent extends StatelessWidget {
   final _OBPage page;
   const _PageContent({required this.page});
- 
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -269,11 +270,11 @@ class _PageContent extends StatelessWidget {
     );
   }
 }
- 
+
 class _Hero extends StatelessWidget {
   final _OBPage page;
   const _Hero({required this.page});
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -332,12 +333,12 @@ class _Hero extends StatelessWidget {
     );
   }
 }
- 
+
 class _Circle extends StatelessWidget {
   final double size;
   final double alpha;
   const _Circle({required this.size, required this.alpha});
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -350,12 +351,12 @@ class _Circle extends StatelessWidget {
     );
   }
 }
- 
+
 class _FloatChip extends StatelessWidget {
   final IconData icon;
   final String label;
   const _FloatChip({required this.icon, required this.label});
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -389,28 +390,28 @@ class _FloatChip extends StatelessWidget {
     );
   }
 }
- 
+
 /// Gentle up-and-down floating motion.
 class _Float extends StatefulWidget {
   final Widget child;
   const _Float({required this.child});
- 
+
   @override
   State<_Float> createState() => _FloatState();
 }
- 
+
 class _FloatState extends State<_Float> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 2200),
   )..repeat(reverse: true);
- 
+
   @override
   void dispose() {
     _c.dispose();
     super.dispose();
   }
- 
+
   @override
   Widget build(BuildContext context) {
     final curve = CurvedAnimation(parent: _c, curve: Curves.easeInOut);
@@ -424,4 +425,3 @@ class _FloatState extends State<_Float> with SingleTickerProviderStateMixin {
     );
   }
 }
- 

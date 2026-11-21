@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
- 
+
 import '../../theme/app_theme.dart';
 import '../pressable_scale.dart';
- 
+
 /// Gradient pill button with press feedback. Set [loading] for a spinner.
 class PrimaryButton extends StatelessWidget {
   final String label;
   final IconData? icon;
   final VoidCallback? onPressed;
   final bool loading;
- 
+
   const PrimaryButton({
     super.key,
     required this.label,
@@ -17,11 +17,11 @@ class PrimaryButton extends StatelessWidget {
     this.onPressed,
     this.loading = false,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !loading;
- 
+
     final button = Opacity(
       opacity: enabled ? 1 : 0.55,
       child: Container(
@@ -74,8 +74,7 @@ class PrimaryButton extends StatelessWidget {
         ),
       ),
     );
- 
+
     return enabled ? PressableScale(scale: 0.97, child: button) : button;
   }
 }
- 

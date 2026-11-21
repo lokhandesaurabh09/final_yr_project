@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
- 
+
 import '../theme/app_theme.dart';
- 
+
 /// VineGuard mark: a shield (protection) holding a grape cluster and leaves.
 /// Drawn in code, so it stays sharp at any size and needs no asset file.
 ///
@@ -11,12 +11,12 @@ import '../theme/app_theme.dart';
 /// With no animation the logo is fully drawn.
 class GrapeLogo extends StatelessWidget {
   final double size;
- 
+
   /// true = lighter shield with a white border, for dark backgrounds.
   final bool onDark;
   final Animation<double>? animation;
   final Animation<double>? shine;
- 
+
   const GrapeLogo({
     super.key,
     this.size = 64,
@@ -24,7 +24,7 @@ class GrapeLogo extends StatelessWidget {
     this.animation,
     this.shine,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -39,15 +39,15 @@ class GrapeLogo extends StatelessWidget {
     );
   }
 }
- 
+
 class _LogoPainter extends CustomPainter {
   final bool onDark;
   final Animation<double>? build;
   final Animation<double>? shine;
- 
+
   _LogoPainter({required this.onDark, this.build, this.shine})
       : super(repaint: Listenable.merge([build, shine]));
- 
+
   static Path _shield() => Path()
     ..moveTo(50, 5)
     ..cubicTo(64, 12, 78, 15, 90, 16)
@@ -57,7 +57,7 @@ class _LogoPainter extends CustomPainter {
     ..lineTo(10, 16)
     ..cubicTo(22, 15, 36, 12, 50, 5)
     ..close();
- 
+
   static Path _leaf({required bool right}) {
     final m = right ? 1.0 : -1.0;
     double x(double v) => 50 + (v - 50) * m;
@@ -67,17 +67,17 @@ class _LogoPainter extends CustomPainter {
       ..cubicTo(x(58), 20, x(50), 27, x(51), 37)
       ..close();
   }
- 
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.scale(size.width / 100, size.height / 100);
- 
+
     final t = build?.value ?? 1.0;
     double seg(double a, double b) => ((t - a) / (b - a)).clamp(0.0, 1.0);
- 
+
     final shield = _shield();
     const box = Rect.fromLTWH(0, 0, 100, 100);
- 
+
     // 1. Outline traces itself
     final outline = Curves.easeInOut.transform(seg(0.0, 0.45));
     final fillAlpha = Curves.easeOut.transform(seg(0.2, 0.55));
@@ -94,7 +94,7 @@ class _LogoPainter extends CustomPainter {
         canvas.drawPath(metric.extractPath(0, metric.length * outline), stroke);
       }
     }
- 
+
     // 2. Fill fades in
     if (fillAlpha > 0) {
       canvas.saveLayer(
@@ -114,7 +114,7 @@ class _LogoPainter extends CustomPainter {
       );
       canvas.restore();
     }
- 
+
     // 3. Grapes pop in (rows of 4, 3, 2, 1)
     const rows = [4, 3, 2, 1];
     var index = 0;
@@ -140,7 +140,7 @@ class _LogoPainter extends CustomPainter {
         );
       }
     }
- 
+
     // 4. Leaves unfurl from the stem
     final leafGrow = Curves.easeOutBack.transform(seg(0.72, 1.0));
     if (leafGrow > 0.01) {
@@ -157,7 +157,7 @@ class _LogoPainter extends CustomPainter {
       );
       canvas.restore();
     }
- 
+
     // 5. Light sweep across the shield
     final s = shine?.value ?? 0.0;
     if (shine != null && s > 0 && s < 1) {
@@ -182,7 +182,7 @@ class _LogoPainter extends CustomPainter {
       canvas.restore();
     }
   }
- 
+
   @override
   bool shouldRepaint(covariant _LogoPainter old) => old.onDark != onDark;
 }

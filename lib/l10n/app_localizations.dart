@@ -649,6 +649,414 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thunderstorm'**
   String get wxStorm;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @noDetectionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No detections yet'**
+  String get noDetectionsYet;
+
+  /// No description provided for @noDetectionsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a grape leaf to get started and save your results here.'**
+  String get noDetectionsMessage;
+
+  /// No description provided for @noMatchingScans.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching scans'**
+  String get noMatchingScans;
+
+  /// No description provided for @noMatchingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different name or switch the filter to All.'**
+  String get noMatchingHint;
+
+  /// No description provided for @searchByDisease.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by disease name'**
+  String get searchByDisease;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @removedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed'**
+  String removedItem(String name);
+
+  /// No description provided for @percentHealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of scans are healthy'**
+  String percentHealthy(int percent);
+
+  /// No description provided for @noNewAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No new alerts'**
+  String get noNewAlerts;
+
+  /// No description provided for @alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get alerts;
+
+  /// No description provided for @changeLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change language'**
+  String get changeLanguage;
+
+  /// No description provided for @aiLeafScan.
+  ///
+  /// In en, this message translates to:
+  /// **'AI LEAF SCAN'**
+  String get aiLeafScan;
+
+  /// No description provided for @demoBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'DEMO'**
+  String get demoBadge;
+
+  /// No description provided for @sampleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'sample'**
+  String get sampleLabel;
+
+  /// No description provided for @kmPerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'km/h'**
+  String get kmPerHour;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueLabel;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get getStarted;
+
+  /// No description provided for @pageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String pageOf(int current, int total);
+
+  /// No description provided for @onbDetectTag.
+  ///
+  /// In en, this message translates to:
+  /// **'DETECT'**
+  String get onbDetectTag;
+
+  /// No description provided for @onbDetectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spot leaf diseases early'**
+  String get onbDetectTitle;
+
+  /// No description provided for @onbDetectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a grape leaf with your camera or pick a photo from your gallery and get a likely diagnosis.'**
+  String get onbDetectBody;
+
+  /// No description provided for @onbDetectChip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera or gallery'**
+  String get onbDetectChip1;
+
+  /// No description provided for @onbDetectChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast analysis'**
+  String get onbDetectChip2;
+
+  /// No description provided for @onbUnderstandTag.
+  ///
+  /// In en, this message translates to:
+  /// **'UNDERSTAND'**
+  String get onbUnderstandTag;
+
+  /// No description provided for @onbUnderstandTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See why the AI decided'**
+  String get onbUnderstandTitle;
+
+  /// No description provided for @onbUnderstandBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Explainable heatmaps highlight the parts of the leaf the model focused on, so you can check the result yourself.'**
+  String get onbUnderstandBody;
+
+  /// No description provided for @onbUnderstandChip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Heatmap overlay'**
+  String get onbUnderstandChip1;
+
+  /// No description provided for @onbCareTag.
+  ///
+  /// In en, this message translates to:
+  /// **'CARE'**
+  String get onbCareTag;
+
+  /// No description provided for @onbCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get clear treatment tips'**
+  String get onbCareTitle;
+
+  /// No description provided for @onbCareBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive simple, step-by-step guidance for each disease and keep a history of every scan.'**
+  String get onbCareBody;
+
+  /// No description provided for @onbCareChip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Step-by-step care'**
+  String get onbCareChip1;
+
+  /// No description provided for @onbCareChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Marathi & English'**
+  String get onbCareChip2;
+
+  /// No description provided for @result.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get result;
+
+  /// No description provided for @savedToHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to history'**
+  String get savedToHistory;
+
+  /// No description provided for @saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get saved;
+
+  /// No description provided for @careTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Care tips'**
+  String get careTips;
+
+  /// No description provided for @treatmentRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatment recommendation'**
+  String get treatmentRecommendation;
+
+  /// No description provided for @aboutThisLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'About this leaf'**
+  String get aboutThisLeaf;
+
+  /// No description provided for @symptomsToLookFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms to look for'**
+  String get symptomsToLookFor;
+
+  /// No description provided for @demoResultNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo result from the sample classifier. It is not a real diagnosis, and the heatmap below is a placeholder.'**
+  String get demoResultNote;
+
+  /// No description provided for @lowConfidenceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The model is not very sure about this leaf. Retake the photo in good light with the leaf filling the frame.'**
+  String get lowConfidenceNote;
+
+  /// No description provided for @whatAiFocusedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'What the AI focused on'**
+  String get whatAiFocusedOn;
+
+  /// No description provided for @original.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get original;
+
+  /// No description provided for @gradCam.
+  ///
+  /// In en, this message translates to:
+  /// **'Grad-CAM'**
+  String get gradCam;
+
+  /// No description provided for @sampleSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'(SAMPLE)'**
+  String get sampleSuffix;
+
+  /// No description provided for @heatmapExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm colours mark the leaf areas that influenced the prediction most. Real Grad-CAM heatmaps will appear here once the trained model is connected.'**
+  String get heatmapExplain;
+
+  /// No description provided for @topPredictions.
+  ///
+  /// In en, this message translates to:
+  /// **'Top predictions'**
+  String get topPredictions;
+
+  /// No description provided for @guidanceDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'General guidance only. Confirm products and doses with the label and your local agriculture officer.'**
+  String get guidanceDisclaimer;
+
+  /// No description provided for @stepPreprocessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preprocessing image'**
+  String get stepPreprocessing;
+
+  /// No description provided for @stepFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature extraction'**
+  String get stepFeatures;
+
+  /// No description provided for @stepPredicting.
+  ///
+  /// In en, this message translates to:
+  /// **'Predicting disease'**
+  String get stepPredicting;
+
+  /// No description provided for @stepExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating explanation'**
+  String get stepExplanation;
+
+  /// No description provided for @placeLeafHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Place the leaf within the frame and keep it steady'**
+  String get placeLeafHint;
+
+  /// No description provided for @scanGrapeLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Grape Leaf'**
+  String get scanGrapeLeaf;
+
+  /// No description provided for @flashOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash on'**
+  String get flashOn;
+
+  /// No description provided for @flashOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash off'**
+  String get flashOff;
+
+  /// No description provided for @captureLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture leaf'**
+  String get captureLeaf;
+
+  /// No description provided for @analyzingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing…'**
+  String get analyzingTitle;
+
+  /// No description provided for @analyzingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This may take a few seconds. Please keep the leaf steady.'**
+  String get analyzingHint;
+
+  /// No description provided for @splashTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy Grapes  |  Better Harvests'**
+  String get splashTagline;
+
+  /// No description provided for @splashFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPLAINABLE AI  ·  GRAPE LEAF DISEASE DETECTION'**
+  String get splashFooter;
 }
 
 class _AppLocalizationsDelegate

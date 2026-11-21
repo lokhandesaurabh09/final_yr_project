@@ -298,4 +298,223 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get wxStorm => 'वादळी पाऊस';
+
+  @override
+  String get all => 'सर्व';
+
+  @override
+  String get overview => 'आढावा';
+
+  @override
+  String get noDetectionsYet => 'अजून कोणतेही निदान नाही';
+
+  @override
+  String get noDetectionsMessage =>
+      'सुरू करण्यासाठी द्राक्षाचे पान स्कॅन करा; तुमचे निकाल येथे जतन होतील.';
+
+  @override
+  String get noMatchingScans => 'जुळणारे स्कॅन नाहीत';
+
+  @override
+  String get noMatchingHint =>
+      'वेगळे नाव वापरून पहा किंवा फिल्टर \'सर्व\' वर करा.';
+
+  @override
+  String get searchByDisease => 'रोगाच्या नावाने शोधा';
+
+  @override
+  String get clearSearch => 'शोध पुसा';
+
+  @override
+  String get undo => 'पूर्ववत करा';
+
+  @override
+  String removedItem(String name) {
+    return '$name काढले';
+  }
+
+  @override
+  String percentHealthy(int percent) {
+    return '$percent% स्कॅन निरोगी आहेत';
+  }
+
+  @override
+  String get noNewAlerts => 'नवीन सूचना नाहीत';
+
+  @override
+  String get alerts => 'सूचना';
+
+  @override
+  String get changeLanguage => 'भाषा बदला';
+
+  @override
+  String get aiLeafScan => 'एआय पान स्कॅन';
+
+  @override
+  String get demoBadge => 'डेमो';
+
+  @override
+  String get sampleLabel => 'नमुना';
+
+  @override
+  String get kmPerHour => 'किमी/तास';
+
+  @override
+  String get today => 'आज';
+
+  @override
+  String get yesterday => 'काल';
+
+  @override
+  String get back => 'मागे';
+
+  @override
+  String get skip => 'वगळा';
+
+  @override
+  String get continueLabel => 'पुढे';
+
+  @override
+  String get getStarted => 'सुरू करा';
+
+  @override
+  String pageOf(int current, int total) {
+    return 'पान $current / $total';
+  }
+
+  @override
+  String get onbDetectTag => 'ओळखा';
+
+  @override
+  String get onbDetectTitle => 'पानांवरील रोग लवकर ओळखा';
+
+  @override
+  String get onbDetectBody =>
+      'कॅमेऱ्याने द्राक्षाचे पान स्कॅन करा किंवा गॅलरीतून फोटो निवडा आणि संभाव्य निदान मिळवा.';
+
+  @override
+  String get onbDetectChip1 => 'कॅमेरा किंवा गॅलरी';
+
+  @override
+  String get onbDetectChip2 => 'जलद तपासणी';
+
+  @override
+  String get onbUnderstandTag => 'समजून घ्या';
+
+  @override
+  String get onbUnderstandTitle => 'एआयने असा निर्णय का घेतला ते पहा';
+
+  @override
+  String get onbUnderstandBody =>
+      'स्पष्टीकरणक्षम हीटमॅप मॉडेलने पानाच्या कोणत्या भागावर लक्ष दिले ते दाखवतात, त्यामुळे तुम्ही निकाल स्वतः तपासू शकता.';
+
+  @override
+  String get onbUnderstandChip1 => 'हीटमॅप आच्छादन';
+
+  @override
+  String get onbCareTag => 'काळजी';
+
+  @override
+  String get onbCareTitle => 'स्पष्ट उपचार सल्ला मिळवा';
+
+  @override
+  String get onbCareBody =>
+      'प्रत्येक रोगासाठी सोपे, टप्प्याटप्प्याचे मार्गदर्शन मिळवा आणि प्रत्येक स्कॅनचा इतिहास ठेवा.';
+
+  @override
+  String get onbCareChip1 => 'टप्प्याटप्प्याने काळजी';
+
+  @override
+  String get onbCareChip2 => 'मराठी व इंग्रजी';
+
+  @override
+  String get result => 'निकाल';
+
+  @override
+  String get savedToHistory => 'इतिहासात जतन केले';
+
+  @override
+  String get saved => 'जतन केले';
+
+  @override
+  String get careTips => 'काळजी सल्ला';
+
+  @override
+  String get treatmentRecommendation => 'उपचार शिफारस';
+
+  @override
+  String get aboutThisLeaf => 'या पानाबद्दल';
+
+  @override
+  String get symptomsToLookFor => 'ओळखण्याची लक्षणे';
+
+  @override
+  String get demoResultNote =>
+      'हा नमुना मॉडेलचा डेमो निकाल आहे. हे खरे निदान नाही आणि खालील हीटमॅप केवळ नमुना आहे.';
+
+  @override
+  String get lowConfidenceNote =>
+      'मॉडेलला या पानाबद्दल पुरेशी खात्री नाही. चांगल्या प्रकाशात, पान चौकट भरून येईल असा फोटो पुन्हा घ्या.';
+
+  @override
+  String get whatAiFocusedOn => 'एआयने कशावर लक्ष दिले';
+
+  @override
+  String get original => 'मूळ';
+
+  @override
+  String get gradCam => 'Grad-CAM';
+
+  @override
+  String get sampleSuffix => '(नमुना)';
+
+  @override
+  String get heatmapExplain =>
+      'उबदार रंग पानाचे ते भाग दाखवतात ज्यांचा अंदाजावर सर्वाधिक प्रभाव पडला. प्रशिक्षित मॉडेल जोडल्यावर खरे Grad-CAM हीटमॅप येथे दिसतील.';
+
+  @override
+  String get topPredictions => 'प्रमुख अंदाज';
+
+  @override
+  String get guidanceDisclaimer =>
+      'हा केवळ सामान्य सल्ला आहे. औषधे व मात्रा लेबलवर आणि स्थानिक कृषी अधिकाऱ्याकडून खात्री करून घ्या.';
+
+  @override
+  String get stepPreprocessing => 'प्रतिमा तयार करत आहे';
+
+  @override
+  String get stepFeatures => 'वैशिष्ट्ये काढत आहे';
+
+  @override
+  String get stepPredicting => 'रोगाचा अंदाज घेत आहे';
+
+  @override
+  String get stepExplanation => 'स्पष्टीकरण तयार करत आहे';
+
+  @override
+  String get placeLeafHint => 'पान चौकटीत ठेवा आणि स्थिर धरा';
+
+  @override
+  String get scanGrapeLeaf => 'द्राक्षाचे पान स्कॅन करा';
+
+  @override
+  String get flashOn => 'फ्लॅश चालू';
+
+  @override
+  String get flashOff => 'फ्लॅश बंद';
+
+  @override
+  String get captureLeaf => 'पानाचा फोटो घ्या';
+
+  @override
+  String get analyzingTitle => 'तपासत आहे…';
+
+  @override
+  String get analyzingHint => 'यास काही सेकंद लागू शकतात. कृपया पान स्थिर धरा.';
+
+  @override
+  String get splashTagline => 'निरोगी द्राक्षे  |  चांगले उत्पादन';
+
+  @override
+  String get splashFooter => 'स्पष्टीकरणक्षम एआय  ·  द्राक्ष पानांवरील रोग ओळख';
 }

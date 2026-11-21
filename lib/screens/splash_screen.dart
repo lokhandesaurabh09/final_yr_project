@@ -1,28 +1,29 @@
 import 'dart:async';
- 
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
- 
+
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../widgets/grape_logo.dart';
 import 'onboarding_screen.dart';
- 
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
- 
+
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
- 
+
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c;
   Timer? _navigationTimer;
- 
+
   Animation<double> _interval(double a, double b,
           [Curve curve = Curves.easeOut]) =>
       CurvedAnimation(parent: _c, curve: Interval(a, b, curve: curve));
- 
+
   @override
   void initState() {
     super.initState();
@@ -30,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 2800),
     )..forward();
- 
+
     _navigationTimer = Timer(const Duration(milliseconds: 3400), () {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
@@ -43,14 +44,14 @@ class _SplashScreenState extends State<SplashScreen>
       );
     });
   }
- 
+
   @override
   void dispose() {
     _navigationTimer?.cancel();
     _c.dispose();
     super.dispose();
   }
- 
+
   @override
   Widget build(BuildContext context) {
     final logoScale = Tween<double>(begin: 0.7, end: 1).animate(
@@ -65,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
       end: Offset.zero,
     ).animate(_interval(0.42, 0.72));
     final loaderFade = _interval(0.7, 1.0);
- 
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
@@ -161,7 +162,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               const SizedBox(height: AppSpacing.medium),
                               Text(
-                                'Healthy Grapes  |  Better Harvests',
+                                AppLocalizations.of(context)!.splashTagline,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 14,
@@ -201,7 +202,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: FadeTransition(
                     opacity: loaderFade,
                     child: Text(
-                      'EXPLAINABLE AI  ·  GRAPE LEAF DISEASE DETECTION',
+                      AppLocalizations.of(context)!.splashFooter,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 10,
@@ -220,12 +221,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
- 
+
 class _Ring extends StatelessWidget {
   final double size;
   final double alpha;
   const _Ring({required this.size, required this.alpha});
- 
+
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(

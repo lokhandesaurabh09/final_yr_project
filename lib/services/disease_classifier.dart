@@ -1,5 +1,5 @@
 import '../models/scan_result.dart';
- 
+
 /// Anything that can turn a leaf image into a [ScanResult].
 ///
 /// The UI only talks to this interface. To plug in the trained model, create
@@ -7,13 +7,13 @@ import '../models/scan_result.dart';
 /// `main.dart`. No screen code has to change.
 abstract class DiseaseClassifier {
   String get modelName;
- 
+
   /// true while results are demo data, not real model output.
   bool get isMock;
- 
+
   Future<ScanResult> classify({String? imagePath});
 }
- 
+
 class _Sample {
   final String id;
   final double confidence;
@@ -21,11 +21,11 @@ class _Sample {
   final List<Prediction> top;
   const _Sample(this.id, this.confidence, this.severity, this.top);
 }
- 
+
 /// Cycles through fixed sample outputs so every screen can be demoed.
 class MockDiseaseClassifier implements DiseaseClassifier {
   int _next = 0;
- 
+
   static const List<_Sample> _samples = [
     _Sample('powdery_mildew', 0.94, DiseaseSeverity.moderate, [
       Prediction('powdery_mildew', 0.94),
@@ -53,13 +53,13 @@ class MockDiseaseClassifier implements DiseaseClassifier {
       Prediction('downy_mildew', 0.06),
     ]),
   ];
- 
+
   @override
   String get modelName => 'Demo classifier';
- 
+
   @override
   bool get isMock => true;
- 
+
   @override
   Future<ScanResult> classify({String? imagePath}) async {
     final s = _samples[_next % _samples.length];
@@ -75,4 +75,3 @@ class MockDiseaseClassifier implements DiseaseClassifier {
     );
   }
 }
- 

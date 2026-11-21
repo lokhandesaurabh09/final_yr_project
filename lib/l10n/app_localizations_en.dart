@@ -301,4 +301,225 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wxStorm => 'Thunderstorm';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get overview => 'Overview';
+
+  @override
+  String get noDetectionsYet => 'No detections yet';
+
+  @override
+  String get noDetectionsMessage =>
+      'Scan a grape leaf to get started and save your results here.';
+
+  @override
+  String get noMatchingScans => 'No matching scans';
+
+  @override
+  String get noMatchingHint =>
+      'Try a different name or switch the filter to All.';
+
+  @override
+  String get searchByDisease => 'Search by disease name';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String removedItem(String name) {
+    return '$name removed';
+  }
+
+  @override
+  String percentHealthy(int percent) {
+    return '$percent% of scans are healthy';
+  }
+
+  @override
+  String get noNewAlerts => 'No new alerts';
+
+  @override
+  String get alerts => 'Alerts';
+
+  @override
+  String get changeLanguage => 'Change language';
+
+  @override
+  String get aiLeafScan => 'AI LEAF SCAN';
+
+  @override
+  String get demoBadge => 'DEMO';
+
+  @override
+  String get sampleLabel => 'sample';
+
+  @override
+  String get kmPerHour => 'km/h';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get getStarted => 'Get Started';
+
+  @override
+  String pageOf(int current, int total) {
+    return 'Page $current of $total';
+  }
+
+  @override
+  String get onbDetectTag => 'DETECT';
+
+  @override
+  String get onbDetectTitle => 'Spot leaf diseases early';
+
+  @override
+  String get onbDetectBody =>
+      'Scan a grape leaf with your camera or pick a photo from your gallery and get a likely diagnosis.';
+
+  @override
+  String get onbDetectChip1 => 'Camera or gallery';
+
+  @override
+  String get onbDetectChip2 => 'Fast analysis';
+
+  @override
+  String get onbUnderstandTag => 'UNDERSTAND';
+
+  @override
+  String get onbUnderstandTitle => 'See why the AI decided';
+
+  @override
+  String get onbUnderstandBody =>
+      'Explainable heatmaps highlight the parts of the leaf the model focused on, so you can check the result yourself.';
+
+  @override
+  String get onbUnderstandChip1 => 'Heatmap overlay';
+
+  @override
+  String get onbCareTag => 'CARE';
+
+  @override
+  String get onbCareTitle => 'Get clear treatment tips';
+
+  @override
+  String get onbCareBody =>
+      'Receive simple, step-by-step guidance for each disease and keep a history of every scan.';
+
+  @override
+  String get onbCareChip1 => 'Step-by-step care';
+
+  @override
+  String get onbCareChip2 => 'Marathi & English';
+
+  @override
+  String get result => 'Result';
+
+  @override
+  String get savedToHistory => 'Saved to history';
+
+  @override
+  String get saved => 'Saved';
+
+  @override
+  String get careTips => 'Care tips';
+
+  @override
+  String get treatmentRecommendation => 'Treatment recommendation';
+
+  @override
+  String get aboutThisLeaf => 'About this leaf';
+
+  @override
+  String get symptomsToLookFor => 'Symptoms to look for';
+
+  @override
+  String get demoResultNote =>
+      'Demo result from the sample classifier. It is not a real diagnosis, and the heatmap below is a placeholder.';
+
+  @override
+  String get lowConfidenceNote =>
+      'The model is not very sure about this leaf. Retake the photo in good light with the leaf filling the frame.';
+
+  @override
+  String get whatAiFocusedOn => 'What the AI focused on';
+
+  @override
+  String get original => 'Original';
+
+  @override
+  String get gradCam => 'Grad-CAM';
+
+  @override
+  String get sampleSuffix => '(SAMPLE)';
+
+  @override
+  String get heatmapExplain =>
+      'Warm colours mark the leaf areas that influenced the prediction most. Real Grad-CAM heatmaps will appear here once the trained model is connected.';
+
+  @override
+  String get topPredictions => 'Top predictions';
+
+  @override
+  String get guidanceDisclaimer =>
+      'General guidance only. Confirm products and doses with the label and your local agriculture officer.';
+
+  @override
+  String get stepPreprocessing => 'Preprocessing image';
+
+  @override
+  String get stepFeatures => 'Feature extraction';
+
+  @override
+  String get stepPredicting => 'Predicting disease';
+
+  @override
+  String get stepExplanation => 'Generating explanation';
+
+  @override
+  String get placeLeafHint =>
+      'Place the leaf within the frame and keep it steady';
+
+  @override
+  String get scanGrapeLeaf => 'Scan Grape Leaf';
+
+  @override
+  String get flashOn => 'Flash on';
+
+  @override
+  String get flashOff => 'Flash off';
+
+  @override
+  String get captureLeaf => 'Capture leaf';
+
+  @override
+  String get analyzingTitle => 'Analyzing…';
+
+  @override
+  String get analyzingHint =>
+      'This may take a few seconds. Please keep the leaf steady.';
+
+  @override
+  String get splashTagline => 'Healthy Grapes  |  Better Harvests';
+
+  @override
+  String get splashFooter => 'EXPLAINABLE AI  ·  GRAPE LEAF DISEASE DETECTION';
 }

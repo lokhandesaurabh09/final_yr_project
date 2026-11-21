@@ -1,58 +1,58 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
- 
+
 class AppColors {
   // Background & Surface Colors
   static const Color background = Color(0xFFF8FAF7);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceElevated = Color(0xFFF0F5EE);
   static const Color border = Color(0xFFE2E8E0);
- 
+
   // Primary Palette - Forest Green & Emerald
   static const Color primary = Color(0xFF245C3A); // Forest Green
   static const Color primaryDark = Color(0xFF173D2A); // Dark Forest
   static const Color primaryLight = Color(0xFF347A4D); // Emerald
   static const Color primaryMuted = Color(0xFFE9F4E8); // Sage
   static const Color primaryExtraMuted = Color(0xFFF5FAF4); // Light Sage
- 
+
   // Neutral Text Colors
   static const Color textPrimary = Color(0xFF1A231E); // Dark Charcoal
   static const Color textSecondary = Color(0xFF5A6B61); // Medium Gray
   static const Color textTertiary = Color(0xFF8B978F); // Light Gray
   static const Color textDisabled = Color(0xFFB8C2BB); // Disabled Gray
- 
+
   // Status Colors
   static const Color success = Color(0xFF1A7F3E); // Emerald Success
   static const Color successMuted = Color(0xFFE9F4E8);
- 
+
   static const Color warning = Color(0xFF8A5700); // Amber Warning (text-safe)
   static const Color warningMuted = Color(0xFFFFF3D9);
- 
+
   static const Color danger = Color(0xFFB42318); // Red Danger
   static const Color dangerMuted = Color(0xFFFCEAE8);
- 
+
   static const Color info = Color(0xFF236A7E); // Teal Info
   static const Color infoMuted = Color(0xFFE9F3F6);
- 
+
   // Accent Colors
   static const Color accent = Color(0xFF5D8C5A); // Moss Green
   static const Color accentMuted = Color(0xFFECF3EB);
- 
+
   // ---- Added for redesign widgets / backward compatibility ----
   static const Color primaryGlow = Color(0xFF52B788); // Fresh Green
   static const Color primaryDim = primaryDark;
   static const Color amber = Color(0xFFE9A23B); // icons/fills only, not text
   static const Color weatherBlue = Color(0xFF236A7E);
   static const Color weatherBlueMuted = Color(0xFFE9F3F6);
- 
+
   static const LinearGradient brandGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0xFF347A4D), Color(0xFF173D2A)],
   );
 }
- 
+
 class AppSpacing {
   static const double xSmall = 4;
   static const double small = 8;
@@ -61,14 +61,14 @@ class AppSpacing {
   static const double xLarge = 24;
   static const double xxLarge = 32;
 }
- 
+
 class AppRadii {
   static const double small = 8;
   static const double control = 12;
   static const double card = 16;
   static const double large = 22;
 }
- 
+
 class AppShadows {
   static List<BoxShadow> get card => [
         BoxShadow(
@@ -78,7 +78,7 @@ class AppShadows {
         ),
       ];
 }
- 
+
 class AppTypography {
   // Display - For brand moments (splash screen, hero sections)
   static const TextStyle display = TextStyle(
@@ -88,7 +88,7 @@ class AppTypography {
     color: AppColors.textPrimary,
     letterSpacing: -0.5,
   );
- 
+
   // Headline - Main page titles
   static const TextStyle headline = TextStyle(
     fontSize: 28,
@@ -97,7 +97,7 @@ class AppTypography {
     color: AppColors.textPrimary,
     letterSpacing: -0.25,
   );
- 
+
   // Title - Section headers, card titles
   static const TextStyle title = TextStyle(
     fontSize: 24,
@@ -105,7 +105,7 @@ class AppTypography {
     fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
   );
- 
+
   // Section Title - Subsection headers
   static const TextStyle sectionTitle = TextStyle(
     fontSize: 18,
@@ -113,7 +113,7 @@ class AppTypography {
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
- 
+
   // Body - Main content text
   static const TextStyle body = TextStyle(
     fontSize: 17,
@@ -121,7 +121,7 @@ class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
- 
+
   // Body Secondary - Supporting text
   static const TextStyle bodySecondary = TextStyle(
     fontSize: 15,
@@ -129,7 +129,7 @@ class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
   );
- 
+
   // Caption - Small labels, metadata
   static const TextStyle caption = TextStyle(
     fontSize: 13,
@@ -137,7 +137,7 @@ class AppTypography {
     fontWeight: FontWeight.w500,
     color: AppColors.textTertiary,
   );
- 
+
   // Label - Button labels, form labels
   static const TextStyle label = TextStyle(
     fontSize: 15,
@@ -145,7 +145,7 @@ class AppTypography {
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
- 
+
   // Mono - Technical data, codes
   static const TextStyle mono = TextStyle(
     fontSize: 14,
@@ -155,7 +155,7 @@ class AppTypography {
     color: AppColors.textSecondary,
   );
 }
- 
+
 class AppTheme {
   static const SystemUiOverlayStyle systemUiOverlay = SystemUiOverlayStyle(
     statusBarColor: AppColors.background,
@@ -164,7 +164,7 @@ class AppTheme {
     systemNavigationBarColor: AppColors.background,
     systemNavigationBarIconBrightness: Brightness.dark,
   );
- 
+
   static ThemeData get theme {
     return ThemeData(
       useMaterial3: true,
@@ -301,4 +301,3 @@ class AppTheme {
     );
   }
 }
- 

@@ -25,7 +25,6 @@ import 'result_screen.dart';
 import 'scan_screen.dart';
 import 'settings_screen.dart';
 
-// TODO(l10n): a few English-only strings below (weather text, advisory).
 
 void _openScan(BuildContext context) {
   Navigator.of(context).push(
@@ -265,8 +264,7 @@ class _Dashboard extends StatelessWidget {
                         } else {
                           ScaffoldMessenger.of(context)
                             ..clearSnackBars()
-                            ..showSnackBar(const SnackBar(
-                                content: Text('No new alerts')));
+                            ..showSnackBar(SnackBar(content: Text(l10n.noNewAlerts)));
                         }
                       },
                     ),
@@ -308,8 +306,8 @@ class _Dashboard extends StatelessWidget {
                         name: DiseaseCatalog.byId(attention.diseaseId)
                             .name(lang),
                         detail: '${_sevText(l10n, attention.severity)}  ·  '
-                            '${dayGroupLabel(attention.createdAt)}, '
-                            '${timeLabel(attention.createdAt)}',
+                            '${dayGroupLabel(attention.createdAt, l10n)}, '
+                            '${timeLabel(attention.createdAt, l10n.localeName)}',
                         severe: attention.severity == DiseaseSeverity.severe,
                         onTap: () => _openResult(context, attention),
                       ),
@@ -435,7 +433,7 @@ class _Header extends StatelessWidget {
         const _LanguageToggle(),
         const SizedBox(width: 8),
         Tooltip(
-          message: 'Alerts',
+          message: AppLocalizations.of(context)!.alerts,
           child: Material(
             color: AppColors.surface,
             shape: const CircleBorder(
@@ -489,7 +487,7 @@ class _LanguageToggle extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Change language',
+      label: AppLocalizations.of(context)!.changeLanguage,
       child: Material(
         color: AppColors.primaryMuted,
         borderRadius: BorderRadius.circular(100),
@@ -601,14 +599,14 @@ class _HeroCard extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(100),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.auto_awesome_rounded,
+                          const Icon(Icons.auto_awesome_rounded,
                               size: 13, color: Colors.white),
                           SizedBox(width: 5),
                           Text(
-                            'AI LEAF SCAN',
+                            AppLocalizations.of(context)!.aiLeafScan,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
@@ -630,9 +628,9 @@ class _HeroCard extends StatelessWidget {
                           border: Border.all(
                               color: AppColors.amber.withValues(alpha: 0.7)),
                         ),
-                        child: const Text(
-                          'DEMO',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context)!.demoBadge,
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.8,
@@ -1228,7 +1226,7 @@ class _ConditionsCard extends StatelessWidget {
                     Text(
                       weather.isStale
                           ? l10n.usingSavedData
-                          : l10n.updatedAt(timeLabel(w.fetchedAt)),
+                          : l10n.updatedAt(timeLabel(w.fetchedAt, l10n.localeName)),
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
@@ -1295,7 +1293,7 @@ class _ConditionsCard extends StatelessWidget {
               Expanded(
                 child: _MiniStat(
                   icon: Icons.air_rounded,
-                  value: '${w.windKmh.round()} km/h',
+                  value: '${w.windKmh.round()} ${l10n.kmPerHour}',
                   label: l10n.wind,
                 ),
               ),
@@ -1606,8 +1604,8 @@ class _ScanTile extends StatelessWidget {
                       severity: ui,
                     ),
                     Text(
-                      '${dayGroupLabel(result.createdAt)}, '
-                      '${timeLabel(result.createdAt)}',
+                      '${dayGroupLabel(result.createdAt, l10n)}, '
+                      '${timeLabel(result.createdAt, l10n.localeName)}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -1631,9 +1629,9 @@ class _ScanTile extends StatelessWidget {
                 ),
               ),
               if (result.isSample)
-                const Text(
-                  'sample',
-                  style: TextStyle(
+                Text(
+                  l10n.sampleLabel,
+                  style: const TextStyle(
                       fontSize: 10.5, color: AppColors.textTertiary),
                 ),
             ],

@@ -14,14 +14,14 @@ class DiseaseDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final lang = Localizations.localeOf(context).languageCode;
+    final lang = l10n.localeName;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
         leading: IconButton(
-          tooltip: 'Back',
+          tooltip: l10n.back,
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
@@ -93,9 +93,9 @@ class DiseaseDetailScreen extends StatelessWidget {
                 _Section(
                   icon: Icons.info_outline_rounded,
                   title: l10n.about,
-                  child: Text(disease.about, style: _body),
+                  child: Text(disease.aboutFor(lang), style: _body),
                 ),
-                if (disease.symptoms.isNotEmpty) ...[
+                if (disease.symptomsFor(lang).isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.large),
                   _Section(
                     icon: Icons.search_rounded,
@@ -103,7 +103,7 @@ class DiseaseDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        for (final s in disease.symptoms) _Bullet(s),
+                        for (final s in disease.symptomsFor(lang)) _Bullet(s),
                       ],
                     ),
                   ),
@@ -115,13 +115,12 @@ class DiseaseDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (var i = 0; i < disease.treatment.length; i++)
-                        _Step('${i + 1}', disease.treatment[i]),
+                      for (var i = 0; i < disease.treatmentFor(lang).length; i++)
+                        _Step('${i + 1}', disease.treatmentFor(lang)[i]),
                       const SizedBox(height: AppSpacing.xSmall),
-                      const Text(
-                        'General guidance only. Confirm products and doses '
-                        'with the label and your local agriculture officer.',
-                        style: TextStyle(
+                      Text(
+                        l10n.guidanceDisclaimer,
+                        style: const TextStyle(
                           fontSize: 12,
                           height: 1.4,
                           color: AppColors.textSecondary,
